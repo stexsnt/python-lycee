@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mue, apprendre Python au lycée</title>
+<meta name="description" content="Leçons courtes et exercices Python corrigés automatiquement, de la Seconde à la Terminale. Dans le navigateur, sans compte.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M23 7c-9-3-14 2-10 7s9 3 8 8-9 5-13 2' fill='none' stroke='%2312805C' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.bunny.net">
+<link rel="stylesheet" href="https://fonts.bunny.net/css?family=bricolage-grotesque:800|atkinson-hyperlegible:400,400i,700|jetbrains-mono:400,700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="entete">
+  <a class="logo" href="#/" aria-label="Mue, retour au parcours">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M23 7c-9-3-14 2-10 7s9 3 8 8-9 5-13 2" fill="none" stroke="var(--ecaille)" stroke-width="6" stroke-linecap="round"/><circle cx="23" cy="7" r="1.6" fill="#fff"/></svg>
+    mue
+  </a>
+  <nav class="principal" aria-label="Navigation principale">
+    <a href="#/" data-onglet="">Parcours</a>
+    <a href="#/defis" data-onglet="defis">Défis</a>
+    <a href="#/bac" data-onglet="bac">Bac à sable</a>
+    <a href="#/profil" data-onglet="profil">Profil</a>
+  </nav>
+  <div class="stats">
+    <a class="stat-niveau" href="#/profil" aria-label="Voir mon profil">
+      <span id="stat-niveau"></span><span id="stat-xp"></span>
+      <span class="jauge"><i id="jauge-xp"></i></span>
+    </a>
+    <span class="serie" title="Jours d'affilée">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-2 1-4 2-5 0 2 1 3 2 3 0-4 1-7 2-10z"/></svg>
+      <span id="stat-serie">0</span><span class="sr"> jours d'affilée</span>
+    </span>
+    <button id="btn-theme" aria-label="Thème sombre" aria-pressed="false">◐</button>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<footer class="pied">
+  <span id="etat-python" data-etat="chargement">Python se prépare…</span>
+  <span>Progression enregistrée dans ce navigateur uniquement, aucune donnée transmise.</span>
+</footer>
+<div id="toasts" aria-live="polite"></div>
+<noscript><p style="padding:2rem">Ce site a besoin de JavaScript pour exécuter Python dans le navigateur.</p></noscript>
+
+<script src="js/contenu.js"></script>
+<script src="js/moteur.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
