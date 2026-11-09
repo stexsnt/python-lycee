@@ -13,6 +13,16 @@ class _BesoinEntree(Exception):
 class _TropDeSortie(Exception):
     pass
 
+class _TropDePas(Exception):
+    pass
+
+def _court(v):
+    r = repr(v)
+    return r if len(r) <= 70 else r[:67] + "..."
+
+def _visible(k, v):
+    return not k.startswith("_") and k != "input" and not callable(v) and type(v).__name__ != "module"
+
 class _Sortie(io.StringIO):
     def write(self, s):
         if self.tell() > 20000:
@@ -53,11 +63,45 @@ def _lancer(arguments):
 
     env = {"__name__": "__main__", "input": _input}
     res = {"sortie": "", "erreur": None, "besoin": None, "appels": []}
+    pas = []
+    etat = {"fin": None}
+
+    def _instantane(frame):
+        g = [[k, _court(v)] for k, v in frame.f_globals.items() if _visible(k, v)]
+        loc = None
+        if frame.f_code.co_name != "<module>":
+            loc = {"nom": frame.f_code.co_name, "vars": [[k, _court(v)] for k, v in frame.f_locals.items() if _visible(k, v)]}
+        return g, loc
+
+    # Pas à pas : on note, avant chaque ligne, l'état des variables et la longueur de l'affichage.
+    def _trace(frame, event, arg):
+        c = frame.f_code
+        if c.co_filename != "<programme>" or (c.co_name.startswith("<") and c.co_name != "<module>"):
+            return None
+        if event == "line":
+            if len(pas) >= 400:
+                raise _TropDePas()
+            g, loc = _instantane(frame)
+            pas.append({"ligne": frame.f_lineno, "g": g, "loc": loc, "n": sortie.tell()})
+        elif event == "return":
+            if c.co_name == "<module>":
+                etat["fin"] = _instantane(frame)[0]
+            elif arg is not None and len(pas) < 400:
+                g, loc = _instantane(frame)
+                pas.append({"ligne": frame.f_lineno, "g": g, "loc": loc, "n": sortie.tell(), "renvoie": _court(arg)})
+        return _trace
+
     ancien = sys.stdout
     sys.stdout = sortie
     random.seed(a.get("graine"))
     try:
-        exec(compile(a["code"], "<programme>", "exec"), env)
+        programme = compile(a["code"], "<programme>", "exec")
+        if a.get("trace"):
+            sys.settrace(_trace)
+        try:
+            exec(programme, env)
+        finally:
+            sys.settrace(None)
         for expr, attendu in (a.get("appels") or []):
             try:
                 v = eval(expr, env)
@@ -69,6 +113,8 @@ def _lancer(arguments):
                 res["appels"].append({"ok": False, "attendu": attendu, "erreur": {"type": type(e).__name__, "msg": str(e), "ligne": _ligne(e)}})
     except _BesoinEntree as e:
         res["besoin"] = str(e)
+    except _TropDePas:
+        res["tronque"] = True
     except _TropDeSortie:
         res["erreur"] = {"type": "TropDeSortie", "msg": "", "ligne": None}
     except SyntaxError as e:
@@ -78,6 +124,9 @@ def _lancer(arguments):
     finally:
         sys.stdout = ancien
     res["sortie"] = sortie.getvalue()
+    if a.get("trace"):
+        res["pas"] = pas
+        res["fin"] = etat["fin"]
     return json.dumps(res)
 `;
 

@@ -96,6 +96,29 @@ label { font-weight: 700; display: block; margin-top: 1rem; }
 label.btn { margin-top: 0; }
 #pseudo { display: block; width: 100%; max-width: 20rem; font-family: var(--texte); font-size: 1rem; }
 
+/* Pas à pas */
+.pap { display: grid; gap: .7rem; }
+.pap-titre { font-weight: 700; margin: 0; }
+.pap-cmd { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.pap-cmd input { flex: 1 1 8rem; min-width: 6rem; accent-color: var(--ecaille); }
+.pap-cmd .btn { flex: 0 0 auto; }
+.pap-cmd button:disabled { opacity: .4; cursor: default; }
+.pap-corps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: .8rem; align-items: start; }
+.pap-code { background: var(--ed-fond); color: var(--ed-texte); border-radius: 10px; padding: .5rem 0; font: 14px/1.65 var(--mono); overflow-x: auto; max-height: 24rem; }
+.pap-code div { display: flex; white-space: pre; padding-right: .8rem; border-left: 4px solid transparent; min-width: max-content; }
+.pap-code code { font: inherit; }
+.pap-code .fleche { width: 1.3em; text-align: center; color: var(--soleil); flex: none; }
+.pap-code .num { width: 1.8em; margin-right: .9em; text-align: right; color: var(--ed-num); flex: none; }
+.pap-code .va { background: rgba(245, 179, 1, .22); border-left-color: var(--soleil); }
+.pap-code .vient { background: rgba(255, 255, 255, .08); }
+.pap-sous { font-weight: 700; font-size: .9rem; margin: .6rem 0 .2rem; color: var(--encre2); }
+.pap-sous:first-child { margin-top: 0; }
+.pap-etat table { width: 100%; border-collapse: collapse; font: 14px/1.5 var(--mono); }
+.pap-etat th, .pap-etat td { text-align: left; padding: .2rem .5rem; border-bottom: 1px solid var(--trait); font-weight: 400; word-break: break-word; }
+.pap-etat th { width: 35%; color: var(--encre2); }
+.pap-etat .change td, .pap-etat .change th { background: var(--ecaille-pale); font-weight: 700; color: var(--encre); }
+.pap-etat pre { font-size: 14px; }
+
 /* Accueil */
 .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; padding: clamp(.5rem, 3vw, 2.5rem) 0 clamp(2rem, 5vw, 4rem); }
 .hero h1 { font-size: clamp(2.3rem, 1.3rem + 4.6vw, 4.4rem); line-height: .98; letter-spacing: -0.035em; }

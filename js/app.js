@@ -193,6 +193,44 @@ async function executerInteractif(code, cons) {
   }
 }
 
+/* Pas à pas : le programme est exécuté une fois en enregistrant l'état avant chaque ligne,
+   puis l'élève parcourt cet enregistrement en avant et en arrière. */
+async function pasAPas(code, cons) {
+  const entrees = [], graine = Math.floor(Math.random() * 1e9); let res;
+  for (;;) {
+    attendrePython(cons);
+    res = await Moteur.executer({ code, entrees, graine, test: false, trace: true });
+    if (!cons.isConnected) return;
+    if (res.besoin == null) break;
+    afficherRes(cons, res); entrees.push(await demanderEntree(cons));
+  }
+  if (!res.pas || !res.pas.length) return afficherRes(cons, res);
+  const lignes = code.replace(/\s+$/, "").split("\n"), dernier = res.pas[res.pas.length - 1];
+  const etapes = [...res.pas, { fin: true, g: res.fin || dernier.g, loc: res.erreur ? dernier.loc : null, n: res.sortie.length }];
+  let k = 0;
+  cons.innerHTML = `<div class="pap"><p class="pap-titre" aria-live="polite"></p>
+    <div class="pap-cmd"><button class="btn petit secondaire" data-d="-1">Précédent</button><button class="btn petit" data-d="1">Suivant</button><input type="range" min="0" max="${etapes.length - 1}" value="0" aria-label="Étape du pas à pas"><span class="pap-n muet"></span></div>
+    <div class="pap-corps"><div class="pap-code"></div><div class="pap-etat"></div></div></div>`;
+  const table = (vars, avant) => vars.length ? `<table>${vars.map(([n, v]) => { const a = avant && avant.find(x => x[0] === n); return `<tr class="${!avant || (a && a[1] === v) ? "" : "change"}"><th scope="row">${h(n)}</th><td>${h(v)}${avant && !(a && a[1] === v) ? `<span class="sr"> (vient de changer)</span>` : ""}</td></tr>`; }).join("")}</table>` : `<p class="muet">Aucune variable pour l'instant.</p>`;
+  const maj = () => {
+    const e = etapes[k], p = k ? etapes[k - 1] : null;
+    $(".pap-titre", cons).textContent = e.fin ? (res.erreur ? "Le programme s'arrête sur une erreur." : res.tronque ? "Le pas à pas s'arrête ici : 400 étapes au maximum." : "Programme terminé.")
+      : e.renvoie !== undefined ? `Ligne ${e.ligne} : la fonction ${e.loc.nom} renvoie ${e.renvoie}.` : `Python va exécuter la ligne ${e.ligne}.`;
+    $(".pap-n", cons).textContent = `${k + 1} / ${etapes.length}`;
+    $("input[type=range]", cons).value = k;
+    $('[data-d="-1"]', cons).disabled = k === 0; $('[data-d="1"]', cons).disabled = k === etapes.length - 1;
+    $(".pap-code", cons).innerHTML = lignes.map((l, i) => `<div class="${!e.fin && e.ligne === i + 1 ? "va" : p && p.ligne === i + 1 ? "vient" : ""}"><span class="fleche" aria-hidden="true">${!e.fin && e.ligne === i + 1 ? "▶" : ""}</span><span class="num">${i + 1}</span><code>${colorer(l) || " "}</code></div>`).join("");
+    const actif = $(".pap-code .va", cons); if (actif && actif.scrollIntoView) actif.scrollIntoView({ block: "nearest", inline: "nearest" });
+    const sortie = res.sortie.slice(0, e.n);
+    $(".pap-etat", cons).innerHTML = `<p class="pap-sous">Variables</p>${table(e.g, p && p.g)}` +
+      (e.loc ? `<p class="pap-sous">Dans la fonction ${h(e.loc.nom)}</p>${table(e.loc.vars, p && p.loc && p.loc.nom === e.loc.nom ? p.loc.vars : null)}` : "") +
+      `<p class="pap-sous">Affichage</p>${sortie ? `<pre>${h(sortie)}</pre>` : `<p class="muet">Rien pour l'instant.</p>`}` + (e.fin && res.erreur ? blocErreur(res.erreur) : "");
+  };
+  cons.onclick = ev => { const b = ev.target.closest("[data-d]"); if (b && cons.contains(b)) { k = Math.max(0, Math.min(etapes.length - 1, k + +b.dataset.d)); maj(); } };
+  $("input[type=range]", cons).oninput = ev => { k = +ev.target.value; maj(); };
+  maj();
+}
+
 async function verifier(e, code, cons) {
   const nu = code.replace(/#.*/g, "");
   const manque = (e.requis || []).find(m => !nu.includes(m)), enTrop = (e.interdit || []).find(m => nu.includes(m));
@@ -328,12 +366,13 @@ function bandeauSucces(z, c, i, etoiles, expl) {
 }
 
 function etapeLecon(z, c, i, e) {
-  z.innerHTML = `<h1>${h(e.titre)}</h1><div class="prose">${e.texte}</div>${e.code ? `<div class="essai"><p class="essai-titre">À toi d'essayer</p><div class="ed-hote"></div><div class="actions"><button class="btn secondaire" id="run">Exécuter</button></div><div class="cons" aria-live="polite"></div></div>` : ""}<div class="actions fin"><button class="btn" id="compris">${S.faits[idEtape(c, i)] ? "Continuer" : "J'ai compris, continuer"}</button></div>`;
+  z.innerHTML = `<h1>${h(e.titre)}</h1><div class="prose">${e.texte}</div>${e.code ? `<div class="essai"><p class="essai-titre">À toi d'essayer</p><div class="ed-hote"></div><div class="actions"><button class="btn secondaire" id="run">Exécuter</button><button class="btn secondaire" id="pap">Pas à pas</button></div><div class="cons"></div></div>` : ""}<div class="actions fin"><button class="btn" id="compris">${S.faits[idEtape(c, i)] ? "Continuer" : "J'ai compris, continuer"}</button></div>`;
   if (e.code) {
     const ed = editeur(e.code, { min: 3, onRun: () => go() }), cons = $(".cons", z);
     $(".ed-hote", z).appendChild(ed.el);
-    const go = () => executerInteractif(ed.valeur(), cons);
+    const go = () => { cons.onclick = null; return executerInteractif(ed.valeur(), cons); };
     $("#run", z).onclick = go;
+    $("#pap", z).onclick = () => pasAPas(ed.valeur(), cons);
   }
   $("#compris", z).onclick = () => { const { gain } = reussir(c, i, 3); if (gain) toast(`+${gain} XP`); location.hash = suivant(c, i); };
 }
@@ -400,15 +439,16 @@ function etapeCode(z, c, i, e) {
     <div class="enonce"><h1>${h(e.titre)}</h1><p class="difficulte">Difficulté ${"●".repeat(e.d || 1)}<span class="vide">${"●".repeat(3 - (e.d || 1))}</span><span class="sr"> ${e.d || 1} sur 3</span></p><div class="prose">${e.enonce}</div><div class="indices" aria-live="polite"></div></div>
     <div class="atelier">
       <div class="ed-hote"></div>
-      <div class="actions"><button class="btn" id="verif">Vérifier</button><button class="btn secondaire" id="run">Exécuter</button><button class="btn lien" id="indice">${e.indices && e.indices.length ? "Un indice" : ""}</button><button class="btn lien" id="raz">Recommencer</button><button class="btn lien" id="sol" hidden>Voir une solution</button></div>
-      <div class="cons" aria-live="polite"><p class="muet">Exécuter lance ton programme librement. Vérifier le soumet aux tests. Raccourci : Ctrl + Entrée.</p></div>
+      <div class="actions"><button class="btn" id="verif">Vérifier</button><button class="btn secondaire" id="run">Exécuter</button><button class="btn secondaire" id="pap">Pas à pas</button><button class="btn lien" id="indice">${e.indices && e.indices.length ? "Un indice" : ""}</button><button class="btn lien" id="raz">Recommencer</button><button class="btn lien" id="sol" hidden>Voir une solution</button></div>
+      <div class="cons"><p class="muet">Exécuter lance ton programme librement. Pas à pas le déroule ligne par ligne en montrant les variables. Vérifier le soumet aux tests.</p></div>
       <div class="tests" aria-live="polite"></div>
     </div></div>`;
   const cons = $(".cons", z), tests = $(".tests", z);
   const ed = editeur(S.codes[id] !== undefined ? S.codes[id] : e.depart, { min: 8, onChange: v => { S.codes[id] = v; sauver(); }, onRun: () => $("#run", z).click() });
   $(".ed-hote", z).appendChild(ed.el);
   if (!e.indices || !e.indices.length) $("#indice", z).hidden = true;
-  $("#run", z).onclick = async () => { tests.innerHTML = ""; await executerInteractif(ed.valeur(), cons); };
+  $("#run", z).onclick = async () => { tests.innerHTML = ""; cons.onclick = null; await executerInteractif(ed.valeur(), cons); };
+  $("#pap", z).onclick = async () => { tests.innerHTML = ""; await pasAPas(ed.valeur(), cons); };
   $("#indice", z).onclick = () => {
     if (indices >= e.indices.length) return;
     $(".indices", z).insertAdjacentHTML("beforeend", `<p class="indice"><strong>Indice ${indices + 1}.</strong> ${h(e.indices[indices])}</p>`); indices++;
@@ -454,11 +494,12 @@ function vueDefis() {
 
 function vueBac() {
   app().innerHTML = `<section class="page bac"><h1>Bac à sable</h1><p class="prose">Un espace libre pour tester une idée, vérifier un calcul ou préparer un exercice de maths. Ton programme est conservé d'une visite à l'autre.</p>
-  <div class="ed-hote"></div><div class="actions"><button class="btn" id="run">Exécuter</button><button class="btn secondaire" id="dl">Télécharger le fichier .py</button><button class="btn lien" id="vider">Tout effacer</button></div><div class="cons" aria-live="polite"><p class="muet">Le résultat s'affichera ici. Raccourci : Ctrl + Entrée.</p></div></section>`;
+  <div class="ed-hote"></div><div class="actions"><button class="btn" id="run">Exécuter</button><button class="btn secondaire" id="pap">Pas à pas</button><button class="btn secondaire" id="dl">Télécharger le fichier .py</button><button class="btn lien" id="vider">Tout effacer</button></div><div class="cons"><p class="muet">Le résultat s'affichera ici. Raccourci : Ctrl + Entrée.</p></div></section>`;
   const cons = $(".cons"), ed = editeur(S.bac.code, { min: 14, onChange: v => { S.bac.code = v; sauver(); }, onRun: () => go() });
   $(".ed-hote").appendChild(ed.el);
   const go = async () => { S.bac.runs++; verifierBadges(); sauver(); await executerInteractif(ed.valeur(), cons); };
   $("#run").onclick = go;
+  $("#pap").onclick = () => { S.bac.runs++; verifierBadges(); sauver(); return pasAPas(ed.valeur(), cons); };
   $("#vider").onclick = () => { ed.fixer(""); ed.focus(); };
   $("#dl").onclick = () => telecharger("programme.py", ed.valeur(), "text/x-python");
 }

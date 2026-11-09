@@ -40,6 +40,12 @@ const { PARCOURS, DEFIS, PY_HARNESS, memesSorties } = new Function(src("contenu.
   const r3 = lancer({ code: "def f():\n    return 1/0\nf()", entrees: [] });
   const r4 = lancer({ code: "if 3 > 2\n    print(1)", entrees: [] });
   console.log(JSON.stringify([r1, r2, r3.erreur, r4.erreur]));
+  const t1 = lancer({ code: "def carre(x):\n    y = x * x\n    return y\n\ns = 0\nfor i in range(2):\n    s = s + carre(i + 1)\nprint(s)", entrees: [], trace: true });
+  console.log("trace:", t1.pas.length, "pas ;", JSON.stringify(t1.pas.slice(4, 7)), JSON.stringify(t1.fin), t1.sortie);
+  const t2 = lancer({ code: "x = 0\nwhile True:\n    x = x + 1", entrees: [], trace: true });
+  const t3 = lancer({ code: "a = int(input('a ? '))\nprint(a / 0)", entrees: ["3"], trace: true });
+  console.log("tronqué:", t2.tronque, t2.pas.length, "| erreur:", JSON.stringify(t3.erreur), t3.pas.length, JSON.stringify(t3.fin));
+  if (t1.sortie.trim() !== "5" || !t2.tronque || !t3.erreur || t1.erreur) { ko++; console.log("ECHEC trace"); }
   console.log(`${n} étapes vérifiées, ${ko} échec(s)`);
   process.exit(ko ? 1 : 0);
 })();
