@@ -1,7 +1,11 @@
 /* Moteur d'exécution : Python (Pyodide) dans un Web Worker.
    Le worker est coupé puis relancé si un programme tourne trop longtemps. */
 
-const PYODIDE_URL = (typeof window !== "undefined" && window.MUE_PYODIDE) || "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/";
+/* Pyodide est servi par le site lui-même (dossier pyodide/). Le CDN ne sert que de secours. */
+const PYODIDE_SOURCES = typeof location === "undefined" ? [] : [
+  (typeof window !== "undefined" && window.MUE_PYODIDE) || new URL("pyodide/", location.href).href,
+  "https://cdn.jsdelivr.net/npm/pyodide@314.0.7/",
+];
 const DELAI_MAX = 8000;
 
 const PY_HARNESS = String.raw`
@@ -209,14 +213,17 @@ function memesSorties(a, b) {
 const Moteur = (() => {
   let w, pret, attente = null, n = 0, file = Promise.resolve(), etat = "chargement";
   const ecouteurs = [];
-  const source = `import { loadPyodide } from ${JSON.stringify(PYODIDE_URL + "pyodide.mjs")};
-let py;
+  const source = `const SOURCES = ${JSON.stringify(PYODIDE_SOURCES)};
+let py = null;
 (async () => {
-  try {
-    py = await loadPyodide({ indexURL: ${JSON.stringify(PYODIDE_URL)} });
-    py.runPython(${JSON.stringify(PY_HARNESS)});
-    postMessage({ pret: true });
-  } catch (e) { postMessage({ echec: String(e) }); }
+  let erreur;
+  for (const u of SOURCES) {
+    try { const m = await import(u + "pyodide.mjs"); py = await m.loadPyodide({ indexURL: u }); break; }
+    catch (e) { erreur = e; py = null; }
+  }
+  if (!py) return postMessage({ echec: String(erreur) });
+  py.runPython(${JSON.stringify(PY_HARNESS)});
+  postMessage({ pret: true });
 })();
 onmessage = e => {
   const r = py.globals.get("_lancer")(JSON.stringify(e.data));

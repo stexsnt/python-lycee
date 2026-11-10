@@ -1,0 +1,3 @@
+Pyodide 314.0.7 (interpréteur Python pour le navigateur), copié tel quel depuis le paquet npm "pyodide".
+Projet : https://pyodide.org — Licence : Mozilla Public License 2.0.
+Ces fichiers sont servis depuis le dépôt pour que le site ne dépende d'aucun serveur extérieur.

@@ -87,6 +87,7 @@ function exemple() {
 }
 document.addEventListener("DOMContentLoaded", () => {
   const sombre = matchMedia("(prefers-color-scheme: dark)").matches; document.documentElement.dataset.theme = sombre ? "sombre" : "clair";
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
   try { $("#codes").value = localStorage.getItem(CLE_PROF) || ""; } catch (e) { /* rien */ }
   $("#codes").addEventListener("input", lire);
   $("#exemple").onclick = exemple;

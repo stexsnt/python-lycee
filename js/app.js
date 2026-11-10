@@ -595,6 +595,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#btn-theme").onclick = () => { S.theme = document.documentElement.dataset.theme === "sombre" ? "clair" : "sombre"; sauver(); appliquerTheme(); };
   Moteur.surEtat(e => { const p = $("#etat-python"); p.dataset.etat = e; p.textContent = { chargement: "Python se prépare…", pret: "Python est prêt", echec: "Python indisponible" }[e]; });
   Moteur.demarrer();
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
   route();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(dessinerSerpents);
 });

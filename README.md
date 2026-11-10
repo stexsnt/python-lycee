@@ -32,8 +32,9 @@ Avant de publier, vérifiez que chaque solution passe bien ses tests :
 
 ## Dépendances externes
 
-- Pyodide (moteur Python), chargé depuis cdn.jsdelivr.net. Si le réseau du lycée bloque
-  ce domaine, copiez la distribution Pyodide dans le dépôt et ajoutez dans `index.html`,
-  avant les autres scripts : `<script>window.MUE_PYODIDE = "pyodide/";</script>`
+- Aucune pour fonctionner : Pyodide (moteur Python, version 314.0.7) est dans le dossier
+  `pyodide/` du dépôt. Le CDN jsdelivr ne sert que de secours si ce dossier est absent.
+- Le fichier `sw.js` met le site en cache : après une première visite complète, il
+  fonctionne hors connexion. Les mises à jour du contenu arrivent dès qu'il y a du réseau.
 - Polices chargées depuis fonts.bunny.net (service européen sans traceur). Sans elles,
   le site utilise les polices du système.
