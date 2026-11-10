@@ -236,6 +236,32 @@ label.btn { margin-top: 0; }
 .ecusson { flex: none; width: 44px; height: 50px; background: var(--trait); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
 .obtenu .ecusson { background: radial-gradient(circle at 50% 38%, var(--soleil) 0 9px, transparent 10px), var(--ecaille); }
 
+/* Tableau de classe */
+.reponse.large { max-width: none; font-size: 13px; word-break: break-all; }
+.prof main { max-width: 1280px; }
+.prof h2 { margin-top: 2.2rem; }
+label.en-ligne { margin: 0; }
+select { font: 1rem var(--texte); padding: .5rem .7rem; border: 2px solid var(--encre2); border-radius: 10px; background: var(--carte); color: var(--encre); max-width: 100%; }
+.defile { overflow-x: auto; border: 2px solid var(--trait); border-radius: 12px; background: var(--carte); }
+table.classe, table.etapes { border-collapse: collapse; width: 100%; font-size: .95rem; }
+.classe th, .classe td, .etapes th, .etapes td { padding: .45rem .6rem; border-bottom: 1px solid var(--trait); text-align: center; white-space: nowrap; vertical-align: top; }
+.classe tbody th, .classe tfoot th, .classe thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--carte); text-align: left; }
+.classe thead th { vertical-align: bottom; background: var(--carte); }
+.classe thead button { font: 700 .92rem var(--texte); color: var(--encre); background: none; border: 0; padding: .2rem; cursor: pointer; white-space: nowrap; }
+.classe thead button:hover { text-decoration: underline; }
+.classe .sous { display: block; font-size: .78rem; font-weight: 400; color: var(--encre2); max-width: 8.5rem; overflow: hidden; text-overflow: ellipsis; margin: 0 auto; }
+.classe td.plein { background: var(--ecaille); color: var(--sur-ecaille); font-weight: 700; }
+.classe td.plein .sous { color: inherit; }
+.classe td.partiel { background: var(--ecaille-pale); }
+.classe td.vide { color: var(--encre2); }
+.classe tfoot td, .classe tfoot th { font-weight: 700; border-bottom: 0; }
+#detail { overflow-x: auto; }
+.etapes { max-width: 52rem; }
+.etapes th, .etapes td { text-align: left; white-space: normal; }
+.etapes td:nth-child(3) { white-space: nowrap; }
+.barre { display: inline-block; width: 6rem; height: .7rem; margin-right: .4rem; background: var(--trait); border-radius: 99px; overflow: hidden; vertical-align: middle; }
+.barre i { display: block; height: 100%; background: var(--ecaille); }
+
 /* Notifications */
 #toasts { position: fixed; z-index: 50; right: 1rem; bottom: 5.5rem; display: grid; gap: .5rem; justify-items: end; pointer-events: none; }
 .toast { padding: .7rem 1.1rem; border-radius: 12px; background: var(--encre); color: var(--fond); font-weight: 700; animation: pose .3s; max-width: 22rem; }

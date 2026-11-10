@@ -14,6 +14,12 @@ dans son navigateur (avec sauvegarde / restauration par fichier depuis la page P
    branche `main`, dossier `/ (root)`, puis enregistrez.
 4. Après une minute, le site est en ligne à l'adresse `https://VOTRE-COMPTE.github.io/python-lycee/`.
 
+## Suivi de classe
+
+Dans sa page Profil, l'élève génère un « code pour mon professeur » et vous l'envoie. La page
+`prof.html` (lien « Espace professeur » en bas du site) transforme les codes collés en tableau de
+classe, avec export CSV. Tout est calculé dans le navigateur, rien n'est stocké en ligne.
+
 ## Ajouter ou modifier des exercices
 
 Tout le contenu est dans `js/contenu.js` ; le format de chaque type d'étape est décrit

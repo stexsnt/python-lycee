@@ -2,7 +2,6 @@
 /* Mue — interface, progression et ludification. Le contenu est dans contenu.js. */
 
 const CLE = "mue.v1";
-const NIVEAUX = [[0, "Œuf"], [60, "Orvet"], [160, "Couleuvre"], [320, "Vipère"], [520, "Cobra"], [780, "Boa"], [1100, "Anaconda"], [1500, "Python royal"]];
 const XP_BASE = { lecon: 5, qcm: 10, predire: 10, ordre: 15 };
 const TOUS = [...PARCOURS.flatMap(p => p.chapitres), DEFIS];
 const BAC_DEPART = `# Bac à sable : écris ce que tu veux, rien n'est noté.\nprenom = input("Ton prénom ? ")\nfor i in range(3):\n    print("Bonjour", prenom, "!" * (i + 1))\n`;
@@ -29,10 +28,6 @@ const xpEtape = (c, e) => c.id === "defis" ? 50 : e.t === "code" ? 10 + 10 * (e.
 const avancement = c => { const f = c.etapes.filter((e, i) => S.faits[idEtape(c, i)]).length; return { n: c.etapes.length, f, fini: f === c.etapes.length }; };
 const premierAFaire = c => { const i = c.etapes.findIndex((e, k) => !S.faits[idEtape(c, k)]); return i < 0 ? 0 : i; };
 const etoilesChap = c => c.etapes.reduce((a, e, i) => { if (e.t === "lecon") return a; a.max += 3; a.n += (S.faits[idEtape(c, i)] || { e: 0 }).e; return a; }, { n: 0, max: 0 });
-function niveau(xp) {
-  let i = 0; while (i + 1 < NIVEAUX.length && NIVEAUX[i + 1][0] <= xp) i++;
-  return { i, nom: NIVEAUX[i][1], min: NIVEAUX[i][0], max: i + 1 < NIVEAUX.length ? NIVEAUX[i + 1][0] : null };
-}
 const defiDuJour = () => Math.floor(new Date(aujourdhui()).getTime() / 864e5) % DEFIS.etapes.length;
 function prochainChapitre() {
   for (const p of PARCOURS) for (const c of p.chapitres) if (!avancement(c).fini) return c;
@@ -525,10 +520,15 @@ function vueProfil() {
   <ul class="badges">${BADGES.map(b => `<li class="${S.badges[b.id] ? "obtenu" : ""}"><span class="ecusson" aria-hidden="true"></span><div><strong>${h(b.nom)}</strong><span>${h(b.desc)}</span>${S.badges[b.id] ? "" : `<span class="sr">(pas encore obtenu)</span>`}</div></li>`).join("")}</ul>
   <h2>Mes informations</h2>
   <p class="prose">Ta progression est enregistrée uniquement dans ce navigateur. Rien n'est envoyé sur Internet. Pour changer d'appareil ou la montrer à ton professeur, utilise les boutons ci-dessous.</p>
-  <label for="pseudo">Pseudo ou prénom (facultatif, apparaît dans le bilan)</label><input id="pseudo" type="text" maxlength="30" value="${h(S.pseudo)}" autocomplete="off">
-  <div class="actions"><button class="btn secondaire" id="bilan">Copier mon bilan</button><button class="btn secondaire" id="exp">Sauvegarder ma progression</button><label class="btn secondaire" for="imp">Restaurer une sauvegarde</label><input type="file" id="imp" accept="application/json,.json" class="sr"><button class="btn lien danger" id="raz">Tout effacer</button></div>
-  <textarea id="bilan-txt" class="reponse" rows="10" readonly hidden aria-label="Bilan de progression"></textarea></section>`;
+  <label for="pseudo">Prénom et initiale du nom (nécessaire pour le code destiné au professeur)</label><input id="pseudo" type="text" maxlength="30" value="${h(S.pseudo)}" autocomplete="off">
+  <div class="actions"><button class="btn" id="codeprof">Code pour mon professeur</button><button class="btn secondaire" id="bilan">Copier mon bilan</button><button class="btn secondaire" id="exp">Sauvegarder ma progression</button><label class="btn secondaire" for="imp">Restaurer une sauvegarde</label><input type="file" id="imp" accept="application/json,.json" class="sr"><button class="btn lien danger" id="raz">Tout effacer</button></div>
+  <textarea id="bilan-txt" class="reponse large" rows="8" readonly hidden aria-label="Texte à copier"></textarea></section>`;
   $("#pseudo").oninput = ev => { S.pseudo = ev.target.value.trim(); sauver(); };
+  $("#codeprof").onclick = async () => {
+    if (!S.pseudo) { toast("Indique d'abord ton prénom dans le champ ci-dessus.", "erreur"); return $("#pseudo").focus(); }
+    const t = $("#bilan-txt"); t.hidden = false; t.value = `${S.pseudo} : ${coderBilan(S, aujourdhui())}`;
+    try { await navigator.clipboard.writeText(t.value); toast("Code copié : colle-le dans ton message au professeur"); } catch (e) { t.select(); }
+  };
   $("#bilan").onclick = async () => { const t = $("#bilan-txt"); t.hidden = false; t.value = bilanTexte(); try { await navigator.clipboard.writeText(t.value); toast("Bilan copié"); } catch (e) { t.select(); } };
   $("#exp").onclick = () => telecharger(`mue-${S.pseudo || "progression"}.json`, JSON.stringify(S), "application/json");
   $("#imp").onchange = async ev => {
