@@ -55,21 +55,24 @@ const BADGES = [
 /* Enregistre une réussite, renvoie les points gagnés. */
 function reussir(c, i, etoiles) {
   const id = idEtape(c, i), e = c.etapes[i], deja = S.faits[id];
-  let gain = 0, double = false;
+  const jour = aujourdhui(), hier = aujourdhui(new Date(Date.now() - 864e5));
+  let gain = 0, double = false, etat = "nouveau";
   if (!deja) {
     gain = Math.round(xpEtape(c, e) * (etoiles === 3 ? 1 : etoiles === 2 ? 0.8 : 0.5));
-    if (c.id === "defis" && defiDuJour() === i && S.defiJour !== aujourdhui()) { gain *= 2; double = true; S.defiJour = aujourdhui(); }
-  }
-  S.faits[id] = { e: Math.max(etoiles, deja ? deja.e : 0) };
+    if (c.id === "defis" && defiDuJour() === i && S.defiJour !== jour) { gain *= 2; double = true; S.defiJour = jour; }
+    S.faits[id] = { e: etoiles, j: jour };
+  } else if (etoiles > deja.e) {
+    // Les étoiles ne s'améliorent qu'un autre jour : refaire tout de suite, c'est recopier, pas retenir.
+    if (deja.j === jour) etat = "attendre"; else { S.faits[id] = { e: etoiles, j: jour }; etat = "ameliore"; }
+  } else etat = "inchange";
   const avant = niveau(S.xp);
   S.xp += gain;
-  const jour = aujourdhui(), hier = aujourdhui(new Date(Date.now() - 864e5));
   if (S.serie.jour !== jour) { S.serie.n = S.serie.jour === hier ? S.serie.n + 1 : 1; S.serie.jour = jour; }
   const apres = niveau(S.xp);
   if (apres.i > avant.i) toast(`Nouvelle mue : tu deviens ${apres.nom}`, "niveau");
   verifierBadges();
   sauver(); majEntete();
-  return { gain, double };
+  return { gain, double, etat, total: S.faits[id].e };
 }
 function verifierBadges() {
   BADGES.forEach(b => { if (!S.badges[b.id] && b.si()) { S.badges[b.id] = aujourdhui(); toast(`Badge obtenu : ${b.nom}`, "badge"); } });
@@ -387,9 +390,11 @@ function vueChapitre(c, brut) {
 
 const suivant = (c, i) => c.id === "defis" ? "#/defis" : `#/c/${c.id}/${i + 1 < c.etapes.length ? i + 1 : "fin"}`;
 function bandeauSucces(z, c, i, etoiles, expl) {
-  const { gain, double } = reussir(c, i, etoiles);
+  const { gain, double, etat, total } = reussir(c, i, etoiles);
   const b = document.createElement("div"); b.className = "succes"; b.setAttribute("role", "status");
-  b.innerHTML = `<div><strong>Réussi ${etoilesHtml(etoiles)}</strong>${gain ? `<span class="gain">+${gain} XP${double ? " (défi du jour, points doublés)" : ""}</span>` : `<span class="muet">Déjà validé auparavant</span>`}${expl ? `<p>${h(expl)}</p>` : ""}</div><a class="btn" href="${suivant(c, i)}">${c.id === "defis" ? "Retour aux défis" : "Continuer"}</a>`;
+  const suite = { ameliore: `<span class="gain">Étoiles améliorées</span>`, inchange: `<span class="muet">Déjà validé auparavant</span>`,
+    attendre: `<p>Tes étoiles ne changent pas aujourd'hui : refaire tout de suite, c'est recopier. Reviens un autre jour et réussis sans aide pour en gagner.</p>` }[etat];
+  b.innerHTML = `<div><strong>Réussi ${etoilesHtml(total)}</strong>${gain ? `<span class="gain">+${gain} XP${double ? " (défi du jour, points doublés)" : ""}</span>` : suite}${expl ? `<p>${h(expl)}</p>` : ""}</div><a class="btn" href="${suivant(c, i)}">${c.id === "defis" ? "Retour aux défis" : "Continuer"}</a>`;
   z.appendChild(b); $("a", b).focus({ preventScroll: true }); b.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
 
@@ -462,9 +467,11 @@ function etapeOrdre(z, c, i, e) {
 }
 
 function etapeCode(z, c, i, e) {
-  const id = idEtape(c, i); let essais = 0, indices = 0, sol = false, occupe = false;
+  const id = idEtape(c, i); let essais = 0, indices = 0, sol = false, occupe = false, revu = false;
+  // Exercice déjà validé sans toutes ses étoiles : un autre jour, on repart du code de départ.
+  const deja0 = S.faits[id], ancien = S.codes[id], aRefaire = deja0 && deja0.e < 3, repart = aRefaire && deja0.j !== aujourdhui();
   z.innerHTML = `<div class="duo">
-    <div class="enonce"><h1>${h(e.titre)}</h1><p class="difficulte">Difficulté ${"●".repeat(e.d || 1)}<span class="vide">${"●".repeat(3 - (e.d || 1))}</span><span class="sr"> ${e.d || 1} sur 3</span></p><div class="prose">${e.enonce}</div><div class="indices" aria-live="polite"></div></div>
+    <div class="enonce"><h1>${h(e.titre)}</h1><p class="difficulte">Difficulté ${"●".repeat(e.d || 1)}<span class="vide">${"●".repeat(3 - (e.d || 1))}</span><span class="sr"> ${e.d || 1} sur 3</span></p><div class="prose">${e.enonce}</div>${!aRefaire ? "" : `<div class="indice refaire"><strong>Déjà validé ${etoilesHtml(deja0.e)}</strong> ${repart ? `Pour gagner des étoiles, réécris ton programme de mémoire, sans indice, et réussis du premier coup.${ancien !== undefined ? ` <button class="btn lien" id="ancien">Revoir mon dernier programme</button>` : ""}` : "Tu pourras améliorer tes étoiles un autre jour, en réécrivant ton programme de mémoire."}</div>`}<div class="indices" aria-live="polite"></div></div>
     <div class="atelier">
       <div class="ed-hote"></div>
       <div class="actions"><button class="btn" id="verif">Vérifier</button><button class="btn secondaire" id="run">Exécuter</button><button class="btn secondaire" id="pap">Pas à pas</button><button class="btn lien" id="indice">${e.indices && e.indices.length ? "Un indice" : ""}</button><button class="btn lien" id="raz">Recommencer</button><button class="btn lien" id="sol" hidden>Voir une solution</button></div>
@@ -472,7 +479,7 @@ function etapeCode(z, c, i, e) {
       <div class="tests" aria-live="polite"></div>
     </div></div>`;
   const cons = $(".cons", z), tests = $(".tests", z);
-  const ed = editeur(S.codes[id] !== undefined ? S.codes[id] : e.depart, { min: 8, onChange: v => { S.codes[id] = v; sauver(); }, onRun: () => $("#run", z).click() });
+  const ed = editeur(S.codes[id] !== undefined && !repart ? S.codes[id] : e.depart, { min: 8, onChange: v => { S.codes[id] = v; sauver(); }, onRun: () => $("#run", z).click() });
   $(".ed-hote", z).appendChild(ed.el);
   if (!e.indices || !e.indices.length) $("#indice", z).hidden = true;
   $("#run", z).onclick = async () => { tests.innerHTML = ""; cons.onclick = null; await executerInteractif(ed.valeur(), cons); };
@@ -483,6 +490,7 @@ function etapeCode(z, c, i, e) {
     if (indices >= e.indices.length) $("#indice", z).hidden = true; else $("#indice", z).textContent = "Un autre indice";
   };
   $("#raz", z).onclick = () => { ed.fixer(e.depart); ed.focus(); };
+  if ($("#ancien", z)) $("#ancien", z).onclick = ev => { revu = true; ed.fixer(ancien); ev.currentTarget.outerHTML = " Ton programme est rechargé : cette fois-ci, les étoiles ne changeront pas."; };
   $("#sol", z).onclick = () => { sol = true; $(".indices", z).insertAdjacentHTML("beforeend", `<div class="indice"><strong>Une solution possible.</strong> Lis-la, comprends-la, puis réécris-la sans la copier.${blocCode(e.solution)}</div>`); $("#sol", z).hidden = true; };
   $("#verif", z).onclick = async () => {
     if (occupe) return; occupe = true; essais++;
@@ -493,7 +501,7 @@ function etapeCode(z, c, i, e) {
     if (r.ok) {
       if (!S.faits[id]) { if (!indices && !sol) S.compteurs.sansIndice++; if (essais >= 6) S.compteurs.tenace++; }
       const dejaFini = S.faits[id];
-      bandeauSucces(tests, c, i, sol ? 1 : essais === 1 && !indices ? 3 : 2);
+      bandeauSucces(tests, c, i, revu ? 0 : sol ? 1 : essais === 1 && !indices ? 3 : 2);
       if (!dejaFini && PARCOURS.some(p => p.chapitres.includes(c)) && avancement(c).fini) confettis();
     } else {
       tests.insertAdjacentHTML("afterbegin", `<p class="echec-titre">Pas encore. ${essais >= 3 ? "Un indice peut débloquer la situation." : "Lis le détail ci-dessous, corrige, puis vérifie à nouveau."}</p>`);
@@ -507,7 +515,7 @@ function vueFin(c, parc) {
   const tous = PARCOURS.flatMap(p => p.chapitres), suite = tous[tous.indexOf(c) + 1];
   app().innerHTML = `<div class="fil"><a href="#/" class="retour">Parcours</a><span class="fil-titre">${h(parc.titre)}, chapitre ${k + 1} : <strong>${h(c.titre)}</strong></span></div>
   <article class="etape bilan">
-    ${a.fini ? `<h1>Chapitre terminé, le serpent s'allonge.</h1><p class="bilan-etoiles">${s.n} / ${s.max} <span class="etoiles">★</span></p><p class="prose">${s.n === s.max ? "Toutes les étoiles : rien à redire." : "Pour gagner les étoiles manquantes, refais les exercices concernés sans indice et du premier coup."}</p>`
+    ${a.fini ? `<h1>Chapitre terminé, le serpent s'allonge.</h1><p class="bilan-etoiles">${s.n} / ${s.max} <span class="etoiles">★</span></p><p class="prose">${s.n === s.max ? "Toutes les étoiles : rien à redire." : "Pour gagner les étoiles manquantes, refais les exercices concernés un autre jour, de mémoire, sans indice et du premier coup."}</p>`
       : `<h1>Il reste ${a.n - a.f} étape${a.n - a.f > 1 ? "s" : ""} dans ce chapitre.</h1>`}
     <ol class="recap">${c.etapes.map((e, i) => { const f = S.faits[idEtape(c, i)]; return `<li class="${f ? "fait" : ""}"><a href="#/c/${c.id}/${i}">${h(e.titre || { qcm: "Question", predire: "Prédiction", ordre: "Remise en ordre" }[e.t])}</a>${f ? (e.t === "lecon" ? `<span class="muet">lue</span>` : etoilesHtml(f.e)) : `<span class="muet">à faire</span>`}</li>`; }).join("")}</ol>
     <div class="actions fin">${a.fini && suite ? `<a class="btn" href="#/c/${suite.id}/0">Chapitre suivant : ${h(suite.titre)}</a>` : !a.fini ? `<a class="btn" href="#/c/${c.id}/${premierAFaire(c)}">Reprendre le chapitre</a>` : `<a class="btn" href="#/defis">Passer aux défis</a>`}<a class="btn secondaire" href="#/">Retour au parcours</a></div>

@@ -190,6 +190,8 @@ label.btn { margin-top: 0; }
 .cons:empty { display: none; }
 .indice { margin-top: 1rem; padding: .7rem .9rem; background: var(--carte); border-left: 5px solid var(--soleil); border-radius: 8px; }
 .indice pre.code { margin: .6rem 0 0; }
+.indice.refaire { border-left-color: var(--ecaille); }
+.indice.refaire .btn { min-height: 0; padding: 0 .2rem; }
 .atelier .actions { margin: .7rem 0; }
 .tests { margin-top: .8rem; }
 .echec-titre { font-weight: 700; }
