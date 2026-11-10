@@ -34,6 +34,7 @@ function prochainChapitre() {
   return null;
 }
 
+const parcoursFini = id => PARCOURS.find(p => p.id === id).chapitres.every(c => avancement(c).fini);
 const BADGES = [
   { id: "premier", nom: "Premier programme", desc: "Réussir un exercice de code", si: () => TOUS.some(c => c.etapes.some((e, i) => e.t === "code" && S.faits[idEtape(c, i)])) },
   { id: "chapitre", nom: "Première mue", desc: "Terminer un chapitre", si: () => PARCOURS.some(p => p.chapitres.some(c => avancement(c).fini)) },
@@ -45,9 +46,10 @@ const BADGES = [
   { id: "bac", nom: "Explorateur", desc: "Lancer 10 programmes dans le bac à sable", si: () => S.bac.runs >= 10 },
   { id: "defi", nom: "Goût du risque", desc: "Réussir un défi", si: () => avancement(DEFIS).f >= 1 },
   { id: "defis", nom: "Dompteur", desc: "Réussir tous les défis", si: () => avancement(DEFIS).fini },
-  { id: "seconde", nom: "Parcours Seconde", desc: "Terminer tous les chapitres de Seconde", si: () => PARCOURS[0].chapitres.every(c => avancement(c).fini) },
-  { id: "premiere", nom: "Parcours Première", desc: "Terminer tous les chapitres de Première", si: () => PARCOURS[1].chapitres.every(c => avancement(c).fini) },
-  { id: "terminale", nom: "Parcours Terminale", desc: "Terminer tous les chapitres de Terminale", si: () => PARCOURS[2].chapitres.every(c => avancement(c).fini) },
+  { id: "seconde", nom: "Parcours Seconde", desc: "Terminer tous les chapitres de Seconde", si: () => parcoursFini("seconde") },
+  { id: "snt", nom: "Parcours SNT", desc: "Terminer tous les chapitres de SNT", si: () => parcoursFini("snt") },
+  { id: "premiere", nom: "Parcours Première", desc: "Terminer tous les chapitres de Première", si: () => parcoursFini("premiere") },
+  { id: "terminale", nom: "Parcours Terminale", desc: "Terminer tous les chapitres de Terminale", si: () => parcoursFini("terminale") },
 ];
 
 /* Enregistre une réussite, renvoie les points gagnés. */
@@ -91,7 +93,7 @@ function confettis() {
 }
 const etoilesHtml = (n, max = 3) => `<span class="etoiles" aria-label="${n} étoile${n > 1 ? "s" : ""} sur ${max}">${"★".repeat(n)}<span class="vide">${"★".repeat(max - n)}</span></span>`;
 
-const RE_PY = /(#.*)|((?:\b[fFrRbB]{1,2})?(?:"(?:\\.|[^"\\\n])*"?|'(?:\\.|[^'\\\n])*'?))|\b(def|return|if|elif|else|for|while|in|import|from|as|and|or|not|True|False|None|break|continue|pass|lambda|is)\b|\b(print|input|int|float|str|bool|len|range|list|abs|round|min|max|sum|sorted|randint|random|sqrt)\b|(\b\d+(?:\.\d+)?\b)/g;
+const RE_PY = /(#.*)|((?:\b[fFrRbB]{1,2})?(?:"(?:\\.|[^"\\\n])*"?|'(?:\\.|[^'\\\n])*'?))|\b(def|return|if|elif|else|for|while|in|import|from|as|and|or|not|True|False|None|break|continue|pass|lambda|is)\b|\b(print|input|int|float|str|bool|len|range|list|abs|round|min|max|sum|sorted|randint|random|sqrt|ord|chr)\b|(\b\d+(?:\.\d+)?\b)/g;
 function colorer(code) {
   let out = "", fin = 0, m; RE_PY.lastIndex = 0;
   while ((m = RE_PY.exec(code))) {
