@@ -345,7 +345,7 @@ function vueAccueil() {
       </ol>
     </section>`; }).join("")}
   <section class="parcours fin-parcours">
-    <header><h2>Défis</h2><p>Six problèmes plus corsés, à tenter quand tu veux. Celui du jour rapporte le double.</p></header>
+    <header><h2>Défis</h2><p>${DEFIS.etapes.length} problèmes plus corsés, à tenter quand tu veux. Celui du jour rapporte le double.</p></header>
     <a class="btn secondaire" href="#/defis">Voir les défis</a>
   </section>`;
   const cons = $(".hero-demo .cons");
