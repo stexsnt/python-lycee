@@ -226,11 +226,19 @@ async function pasAPas(code, cons) {
   maj();
 }
 
+const VIDE = { sortie: "", erreur: null, besoin: null, appels: [] };
 async function verifier(e, code, cons) {
-  const nu = code.replace(/#.*/g, "");
-  const manque = (e.requis || []).find(m => !nu.includes(m)), enTrop = (e.interdit || []).find(m => nu.includes(m));
-  if (manque) return { ok: false, lignes: [{ ok: false, txt: `Ton programme doit utiliser <code>${h(manque)}</code>.` }] };
-  if (enTrop) return { ok: false, lignes: [{ ok: false, txt: `Dans cet exercice, <code>${h(enTrop)}</code> n'est pas autorisé.` }] };
+  // 1. Structure : mots et opérateurs exigés ou interdits, variables réellement calculées.
+  const regles = { requis: e.requis || [], interdit: e.interdit || [], depend: e.depend || {} };
+  if (regles.requis.length || regles.interdit.length || Object.keys(regles.depend).length) {
+    attendrePython(cons);
+    const st = await Moteur.executer({ code, regles });
+    if (st.erreur) return { ok: false, lignes: [{ ok: false, txt: "La vérification n'a pas pu se faire.", plus: blocErreur(st.erreur) }] };
+    const pb = [...st.manque.map(m => `Ton programme doit utiliser <code>${h(m)}</code>.`),
+      ...st.interdit.map(m => `Dans cet exercice, <code>${h(m)}</code> n'est pas autorisé.`),
+      ...st.depend.map(([v, noms]) => `La variable <code>${h(v)}</code> doit être calculée à partir de ${noms.map(x => `<code>${h(x)}</code>`).join(" et ")}, pas écrite directement.`)];
+    if (pb.length) return { ok: false, lignes: pb.map(txt => ({ ok: false, txt })) };
+  }
   const lignes = []; let ok = true;
   for (const t of e.tests) {
     attendrePython(cons);
@@ -249,6 +257,29 @@ async function verifier(e, code, cons) {
       else if (a.erreur) lignes.push({ ok: false, txt: `<code>${h(expr)}</code> provoque une erreur.`, plus: blocErreur(a.erreur) });
       else lignes.push({ ok: a.ok, txt: `<code>${h(expr)}</code> doit valoir <code>${h(a.attendu)}</code>` + (a.ok ? "" : `, mais vaut <code>${h(a.obtenu)}</code>${a.obtenu === "None" ? " (as-tu oublié return ?)" : ""}`) });
     });
+  }
+  // 3. Tests supplémentaires : d'autres valeurs que celles de l'énoncé, comparées à la solution de référence.
+  if (ok && e.caches && e.caches.length) {
+    const lancer = o => Moteur.executer(Object.assign({ entrees: [], test: true }, o));
+    let echec = null;
+    if (Array.isArray(e.caches[0])) {
+      for (const entrees of e.caches) {
+        const ref = await lancer({ code: e.solution, entrees }), r = await lancer({ code, entrees });
+        if (r.erreur || r.besoin != null || !memesSorties(r.sortie, ref.sortie)) {
+          echec = { txt: `Les exemples de l'énoncé passent, mais pas avec ${entrees.length > 1 ? "les saisies" : "la saisie"} ${entrees.map(x => `<code>${h(x)}</code>`).join(", ")}.`,
+            plus: r.erreur ? blocErreur(r.erreur) : `<div class="compare"><div><span>Ton programme affiche</span><pre>${h(normaliser(r.sortie)) || "(rien)"}</pre></div></div>` };
+          break;
+        }
+      }
+    } else {
+      const ref = await lancer({ code: e.solution, appels: e.caches.map(x => [x, "None"]) });
+      const r = ref.erreur ? VIDE : await lancer({ code, appels: e.caches.map((x, k) => [x, ref.appels[k].obtenu]) });
+      const k = r.erreur ? 0 : r.appels.findIndex(a => !a.ok);
+      if (r.erreur) echec = { txt: "Les exemples de l'énoncé passent, mais un test supplémentaire provoque une erreur.", plus: blocErreur(r.erreur) };
+      else if (k >= 0) echec = { txt: `Les exemples de l'énoncé passent, mais <code>${h(e.caches[k])}</code> ne donne pas le bon résultat` + (r.appels[k].erreur ? "." : ` : ta fonction renvoie <code>${h(r.appels[k].obtenu)}</code>.`), plus: r.appels[k].erreur ? blocErreur(r.appels[k].erreur) : "" };
+    }
+    if (echec) { ok = false; lignes.push(Object.assign({ ok: false }, echec)); }
+    else lignes.push({ ok: true, txt: "Tests supplémentaires avec d'autres valeurs : réussis." });
   }
   return { ok, lignes };
 }

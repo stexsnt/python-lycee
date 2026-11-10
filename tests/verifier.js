@@ -15,7 +15,7 @@ const { PARCOURS, DEFIS, PY_HARNESS, memesSorties } = new Function(src("contenu.
     if (t.sortie !== undefined && !memesSorties(r.sortie, t.sortie)) return false;
     return r.appels.every(a => a.ok);
   });
-  let ko = 0, n = 0;
+  let ko = 0, n = 0, nbCaches = 0;
   for (const c of [...PARCOURS.flatMap(p => p.chapitres), DEFIS]) {
     c.etapes.forEach((e, i) => {
       const nom = `${c.id}.${i} ${e.titre || e.t}`;
@@ -23,8 +23,16 @@ const { PARCOURS, DEFIS, PY_HARNESS, memesSorties } = new Function(src("contenu.
       if (e.t === "code") {
         for (let k = 0; k < 3; k++) if (!passe(e, e.solution)) { ko++; console.log("ECHEC solution :", nom); break; }
         if (passe(e, e.depart)) { ko++; console.log("ECHEC départ déjà valide :", nom); }
-        const nu = e.solution.replace(/#.*/g, "");
-        if ((e.requis || []).some(m => !nu.includes(m)) || (e.interdit || []).some(m => nu.includes(m))) { ko++; console.log("ECHEC requis/interdit :", nom); }
+        const st = lancer({ code: e.solution, regles: { requis: e.requis || [], interdit: e.interdit || [], depend: e.depend || {} } });
+        if (st.manque.length || st.interdit.length || st.depend.length) { ko++; console.log("ECHEC structure :", nom, JSON.stringify(st)); }
+        if (e.caches) {
+          nbCaches += e.caches.length;
+          const io = Array.isArray(e.caches[0]);
+          const refs = io ? e.caches.map(en => lancer({ code: e.solution, entrees: en, test: true })) : [lancer({ code: e.solution, entrees: [], test: true, appels: e.caches.map(x => [x, "None"]) })];
+          if (refs.some(r => r.erreur || r.besoin != null || r.appels.some(a => a.erreur))) { ko++; console.log("ECHEC tests cachés (référence) :", nom); }
+          const dep = io ? e.caches.every(en => { const r = lancer({ code: e.depart, entrees: en, test: true }); return !r.erreur && r.besoin == null && memesSorties(r.sortie, lancer({ code: e.solution, entrees: en, test: true }).sortie); }) : false;
+          if (dep) { ko++; console.log("ECHEC départ passe les tests cachés :", nom); }
+        }
       } else if (e.t === "predire" || e.t === "ordre") {
         const r = lancer({ code: e.t === "ordre" ? e.lignes.join("\n") : e.code, entrees: [], test: true });
         if (r.erreur || !memesSorties(r.sortie, e.attendu)) { ko++; console.log("ECHEC attendu :", nom, JSON.stringify(r)); }
@@ -46,6 +54,10 @@ const { PARCOURS, DEFIS, PY_HARNESS, memesSorties } = new Function(src("contenu.
   const t3 = lancer({ code: "a = int(input('a ? '))\nprint(a / 0)", entrees: ["3"], trace: true });
   console.log("tronqué:", t2.tronque, t2.pas.length, "| erreur:", JSON.stringify(t3.erreur), t3.pas.length, JSON.stringify(t3.fin));
   if (t1.sortie.trim() !== "5" || !t2.tronque || !t3.erreur || t1.erreur) { ko++; console.log("ECHEC trace"); }
+  const R = (code, regles) => JSON.stringify(lancer({ code, regles }));
+  console.log("triches :", R("print(391)\nprint(1)", { requis: ["*", "%"] }), R("longueur = 8\nlargeur = 5\nperimetre = 26\naire = longueur * largeur", { depend: { perimetre: ["longueur", "largeur"], aire: ["longueur", "largeur"] } }),
+    R("longueur = 8\nlargeur = 5\nd = longueur + largeur\nperimetre = 2 * d", { depend: { perimetre: ["longueur", "largeur"] } }), R("print('100 % sûr')\nL.sort()", { interdit: ["%", "sort", "sorted"] }));
+  console.log(nbCaches, "tests cachés");
   console.log(`${n} étapes vérifiées, ${ko} échec(s)`);
   process.exit(ko ? 1 : 0);
 })();

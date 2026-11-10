@@ -5,7 +5,7 @@ const PYODIDE_URL = (typeof window !== "undefined" && window.MUE_PYODIDE) || "ht
 const DELAI_MAX = 8000;
 
 const PY_HARNESS = String.raw`
-import sys, io, json, random, traceback
+import sys, io, json, random, traceback, ast
 
 class _BesoinEntree(Exception):
     pass
@@ -45,8 +45,69 @@ def _ligne(e):
             ligne = f.lineno
     return ligne
 
+# ----- Contrôle de la structure du programme, sur l'arbre syntaxique (pas sur le texte) -----
+_MOTS = {"for": (ast.For,), "while": (ast.While,), "if": (ast.If, ast.IfExp), "def": (ast.FunctionDef,),
+         "return": (ast.Return,), "import": (ast.Import, ast.ImportFrom)}
+_OPS = {"+": ast.Add, "-": ast.Sub, "*": ast.Mult, "/": ast.Div, "//": ast.FloorDiv, "%": ast.Mod, "**": ast.Pow}
+
+def _present(arbre, jeton):
+    for n in ast.walk(arbre):
+        if jeton in _MOTS:
+            if isinstance(n, _MOTS[jeton]):
+                return True
+        elif jeton in _OPS:
+            if isinstance(n, (ast.BinOp, ast.AugAssign)) and isinstance(n.op, _OPS[jeton]):
+                return True
+        elif jeton.replace(".", "", 1).isdigit():
+            if isinstance(n, ast.Constant) and type(n.value) in (int, float) and n.value == float(jeton):
+                return True
+        elif (isinstance(n, ast.Name) and n.id == jeton) or (isinstance(n, ast.Attribute) and n.attr == jeton) \
+                or (isinstance(n, ast.alias) and n.name == jeton):
+            return True
+    return False
+
+def _dependances(arbre):
+    dep = {}
+    for n in ast.walk(arbre):
+        cibles, valeur = [], None
+        if isinstance(n, ast.Assign):
+            cibles, valeur = n.targets, n.value
+        elif isinstance(n, (ast.AugAssign, ast.AnnAssign)) and n.value is not None:
+            cibles, valeur = [n.target], n.value
+        for c in cibles:
+            for t in ast.walk(c):
+                if isinstance(t, ast.Name):
+                    dep.setdefault(t.id, set()).update(x.id for x in ast.walk(valeur) if isinstance(x, ast.Name))
+    return dep
+
+def _atteint(dep, var):
+    vus, pile = set(), [var]
+    while pile:
+        for x in dep.get(pile.pop(), ()):
+            if x not in vus:
+                vus.add(x)
+                pile.append(x)
+    return vus
+
+def _structure(code, regles):
+    res = {"manque": [], "interdit": [], "depend": []}
+    try:
+        arbre = ast.parse(code)
+    except SyntaxError:
+        return res
+    res["manque"] = [j for j in regles.get("requis", []) if not _present(arbre, j)]
+    res["interdit"] = [j for j in regles.get("interdit", []) if _present(arbre, j)]
+    dep = _dependances(arbre)
+    for var, noms in regles.get("depend", {}).items():
+        absents = [x for x in noms if x not in _atteint(dep, var)]
+        if absents:
+            res["depend"].append([var, noms])
+    return res
+
 def _lancer(arguments):
     a = json.loads(arguments)
+    if "regles" in a:
+        return json.dumps(_structure(a["code"], a["regles"]))
     sortie = _Sortie()
     attente = list(a.get("entrees") or [])
     test = a.get("test", False)
