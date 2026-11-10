@@ -3,7 +3,7 @@
   --fond: #F3F6F1; --carte: #FFFFFF; --encre: #14213D; --encre2: #4A5672; --trait: #D5DDD3;
   --ecaille: #12805C; --sur-ecaille: #FFFFFF; --ecaille-pale: #DDF3E8;
   --soleil: #F5B301; --corail: #C92C42; --corail-pale: #FBE4E7; --ciel: #2F5FD0;
-  --ed-fond: #111A33; --ed-texte: #E6ECFA; --ed-num: #6E7CA3;
+  --ed-fond: #111A33; --ed-texte: #E6ECFA; --ed-num: #7F8DB3; --ed-com: #8B97B8; --ed-bord: transparent;
   --titre: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
   --texte: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, Consolas, "Courier New", monospace;
@@ -13,7 +13,8 @@
   --fond: #0E1528; --carte: #172038; --encre: #E9EEF9; --encre2: #A9B5CE; --trait: #2B3756;
   --ecaille: #3CCB96; --sur-ecaille: #06231A; --ecaille-pale: #153A30;
   --corail: #FF7C8C; --corail-pale: #3A1A24; --ciel: #8CAEFF;
-  --ed-fond: #0A1022;
+  /* En mode nuit, le bloc de code est plus clair que la page et bordé, pour s'en détacher. */
+  --ed-fond: #1C2748; --ed-num: #93A0C4; --ed-com: #A3AED0; --ed-bord: #3A4974;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -68,7 +69,7 @@ main { max-width: 1120px; margin: 0 auto; padding: clamp(1.2rem, 3vw, 2.5rem) cl
 .actions.fin { margin-top: 2rem; }
 
 /* Éditeur et console */
-.ed { display: flex; background: var(--ed-fond); border-radius: 14px; overflow: hidden; font: 15px/1.6 var(--mono); }
+.ed { display: flex; border: 1px solid var(--ed-bord); background: var(--ed-fond); border-radius: 14px; overflow: hidden; font: 15px/1.6 var(--mono); }
 .ed:focus-within { outline: 3px solid var(--ciel); outline-offset: 2px; }
 .ed-num { padding: 14px 10px 14px 14px; text-align: right; color: var(--ed-num); white-space: pre; user-select: none; }
 .ed-zone { position: relative; flex: 1; min-width: 0; }
@@ -76,8 +77,8 @@ main { max-width: 1120px; margin: 0 auto; padding: clamp(1.2rem, 3vw, 2.5rem) cl
 .ed-hl { position: absolute; inset: 0; overflow: hidden; color: var(--ed-texte); pointer-events: none; }
 .ed textarea { display: block; position: relative; width: 100%; resize: none; background: transparent; color: transparent; caret-color: #fff; outline: none; overflow-x: auto; overflow-y: hidden; }
 .ed textarea::selection { background: rgba(122, 162, 255, .35); }
-.t-c { color: #8B97B8; font-style: italic; } .t-s { color: #9CE0A8; } .t-k { color: #FFC857; font-weight: 700; } .t-b { color: #8CC8FF; } .t-n { color: #FFA3B1; }
-pre.code { margin: 0 0 1rem; padding: 14px 16px; background: var(--ed-fond); color: var(--ed-texte); border-radius: 14px; overflow-x: auto; font-size: 15px; line-height: 1.6; }
+.t-c { color: var(--ed-com); font-style: italic; } .t-s { color: #9CE0A8; } .t-k { color: #FFC857; font-weight: 700; } .t-b { color: #8CC8FF; } .t-n { color: #FFA3B1; }
+pre.code { margin: 0 0 1rem; padding: 14px 16px; border: 1px solid var(--ed-bord); background: var(--ed-fond); color: var(--ed-texte); border-radius: 14px; overflow-x: auto; font-size: 15px; line-height: 1.6; }
 .cons { min-height: 3.2rem; padding: .8rem 1rem; background: var(--carte); border: 2px solid var(--trait); border-radius: 14px; }
 .cons pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 15px; line-height: 1.55; }
 .cons p { margin: 0; }
@@ -104,7 +105,7 @@ label.btn { margin-top: 0; }
 .pap-cmd .btn { flex: 0 0 auto; }
 .pap-cmd button:disabled { opacity: .4; cursor: default; }
 .pap-corps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: .8rem; align-items: start; }
-.pap-code { background: var(--ed-fond); color: var(--ed-texte); border-radius: 10px; padding: .5rem 0; font: 14px/1.65 var(--mono); overflow-x: auto; max-height: 24rem; }
+.pap-code { border: 1px solid var(--ed-bord); background: var(--ed-fond); color: var(--ed-texte); border-radius: 10px; padding: .5rem 0; font: 14px/1.65 var(--mono); overflow-x: auto; max-height: 24rem; }
 .pap-code div { display: flex; white-space: pre; padding-right: .8rem; border-left: 4px solid transparent; min-width: max-content; }
 .pap-code code { font: inherit; }
 .pap-code .fleche { width: 1.3em; text-align: center; color: var(--soleil); flex: none; }
