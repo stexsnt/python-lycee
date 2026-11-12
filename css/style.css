@@ -295,3 +295,23 @@ table.classe, table.etapes { border-collapse: collapse; width: 100%; font-size: 
   .btn.lien { flex: 0 1 auto; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+
+/* Espace professeur : plusieurs classes */
+.onglets { display: flex; flex-wrap: wrap; gap: .3rem; margin: 2.2rem 0 0; border-bottom: 2px solid var(--trait); }
+.onglets:empty { display: none; }
+.onglets button { font: 700 1rem var(--texte); color: var(--encre2); background: none; border: 2px solid transparent; border-bottom: 0; border-radius: 10px 10px 0 0; padding: .55rem .9rem; margin-bottom: -2px; cursor: pointer; }
+.onglets button:hover { color: var(--encre); }
+.onglets button[aria-selected="true"] { color: var(--encre); background: var(--carte); border-color: var(--trait); }
+.onglets .nb { font-weight: 400; font-size: .85rem; color: var(--encre2); }
+.prof .onglets + #nouvelle { margin-top: .8rem; }
+.prof .gestion { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin: .8rem 0; }
+.prof #resultats > h2:first-child { margin-top: 1.4rem; }
+.prof input.court { max-width: 11rem; margin: 0; font: 1rem var(--texte); padding: .5rem .7rem; border: 2px solid var(--encre2); border-radius: 10px; background: var(--carte); color: var(--encre); }
+.prof .manquants { background: var(--corail-pale); border-radius: 10px; padding: .6rem .9rem; }
+.prof details { margin: .8rem 0 1.2rem; }
+.prof summary { cursor: pointer; font-weight: 700; padding: .3rem 0; }
+.prof #lien-txt code { word-break: break-all; }
+.classe td.delta { font-weight: 700; }
+.classe .ligne-outils { display: flex; gap: .3rem; margin-top: .3rem; }
+.classe .mini { font: .8rem var(--texte); padding: .15rem .35rem; border: 1px solid var(--encre2); border-radius: 6px; background: var(--carte); color: var(--encre); cursor: pointer; max-width: 9rem; }
+.classe tbody th .btn.lien { padding: 0; font-weight: 700; }

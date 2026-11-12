@@ -15,6 +15,9 @@ function hacher(s) {
 const versB64 = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const depuisB64 = s => decodeURIComponent(escape(atob(s.replace(/-/g, "+").replace(/_/g, "/"))));
 
+/* Nom de classe : majuscules, sans espace, 12 caractères au plus (« 2de 4 » devient « 2DE4 »). */
+const normClasse = s => String(s || "").toUpperCase().replace(/[^A-Z0-9À-Ý-]/g, "").slice(0, 12);
+
 /* Un caractère par étape et par chapitre : 0 = pas faite, 1 à 3 = nombre d'étoiles. */
 function coderBilan(etat, date) {
   const f = {};
@@ -22,7 +25,7 @@ function coderBilan(etat, date) {
     const s = c.etapes.map((e, i) => { const r = etat.faits[c.id + "." + i]; return r ? String(Math.min(3, Math.max(1, r.e || 1))) : "0"; }).join("");
     if (/[1-3]/.test(s)) f[c.id] = s;
   });
-  const corps = versB64(JSON.stringify({ p: etat.pseudo, d: date, x: etat.xp, s: etat.serie.n, f }));
+  const corps = versB64(JSON.stringify({ p: etat.pseudo, c: normClasse(etat.classe) || undefined, d: date, x: etat.xp, s: etat.serie.n, f }));
   return `MUE1.${corps}.${hacher(corps + SEL_BILAN)}`;
 }
 function decoderBilan(code) {

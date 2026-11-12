@@ -562,9 +562,12 @@ function vueProfil() {
   <h2>Mes informations</h2>
   <p class="prose">Ta progression est enregistrée uniquement dans ce navigateur. Rien n'est envoyé sur Internet. Pour changer d'appareil ou la montrer à ton professeur, utilise les boutons ci-dessous.</p>
   <label for="pseudo">Prénom et initiale du nom (nécessaire pour le code destiné au professeur)</label><input id="pseudo" type="text" maxlength="30" value="${h(S.pseudo)}" autocomplete="off">
+  <label for="classe">Classe, écrite comme ton professeur l'a indiquée (par exemple 2DE4)</label><input id="classe" type="text" maxlength="12" value="${h(S.classe || "")}" autocomplete="off">
   <div class="actions"><button class="btn" id="codeprof">Code pour mon professeur</button><button class="btn secondaire" id="bilan">Copier mon bilan</button><button class="btn secondaire" id="exp">Sauvegarder ma progression</button><label class="btn secondaire" for="imp">Restaurer une sauvegarde</label><input type="file" id="imp" accept="application/json,.json" class="sr"><button class="btn lien danger" id="raz">Tout effacer</button></div>
   <textarea id="bilan-txt" class="reponse large" rows="8" readonly hidden aria-label="Texte à copier"></textarea></section>`;
   $("#pseudo").oninput = ev => { S.pseudo = ev.target.value.trim(); sauver(); };
+  $("#classe").oninput = ev => { S.classe = normClasse(ev.target.value); sauver(); };
+  $("#classe").onchange = ev => { ev.target.value = S.classe || ""; };
   $("#codeprof").onclick = async () => {
     if (!S.pseudo) { toast("Indique d'abord ton prénom dans le champ ci-dessus.", "erreur"); return $("#pseudo").focus(); }
     const t = $("#bilan-txt"); t.hidden = false; t.value = `${S.pseudo} : ${coderBilan(S, aujourdhui())}`;
@@ -602,6 +605,8 @@ window.addEventListener("hashchange", route);
 window.addEventListener("resize", () => requestAnimationFrame(dessinerSerpents));
 document.addEventListener("DOMContentLoaded", () => {
   appliquerTheme(); majEntete();
+  const clLien = normClasse(new URLSearchParams(location.search).get("classe"));   // lien donné par le professeur
+  if (clLien) { if (!S.classe) { S.classe = clLien; sauver(); setTimeout(() => toast(`Classe enregistrée dans ton profil : ${clLien}`), 600); } history.replaceState(null, "", location.pathname + location.hash); }
   $("#btn-theme").onclick = () => { S.theme = document.documentElement.dataset.theme === "sombre" ? "clair" : "sombre"; sauver(); appliquerTheme(); };
   Moteur.surEtat(e => { const p = $("#etat-python"); p.dataset.etat = e; p.textContent = { chargement: "Python se prépare…", pret: "Python est prêt", echec: "Python indisponible" }[e]; });
   Moteur.demarrer();

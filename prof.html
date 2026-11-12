@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mue, tableau de classe</title>
+<title>Mue, espace professeur</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M23 7c-9-3-14 2-10 7s9 3 8 8-9 5-13 2' fill='none' stroke='%2312805C' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.bunny.net">
@@ -19,23 +19,38 @@
   <a href="index.html" style="margin-left:auto">Retour au site élève</a>
 </header>
 <main>
-  <h1>Tableau de classe</h1>
+  <h1>Espace professeur</h1>
   <ol class="prose">
-    <li>Chaque élève ouvre sa page Profil, indique son prénom et clique sur « Code pour mon professeur ».</li>
+    <li>Chaque élève ouvre sa page Profil, indique son prénom et sa classe, puis clique sur « Code pour mon professeur ».</li>
     <li>Il vous envoie ce code par l'ENT, par message ou dans un document partagé.</li>
-    <li>Collez ici tous les codes reçus, en vrac : le texte autour des codes est ignoré.</li>
+    <li>Collez ici tous les codes reçus, toutes classes mélangées : ils se rangent seuls, et le texte autour des codes est ignoré.</li>
   </ol>
   <label for="codes">Codes des élèves</label>
-  <textarea id="codes" class="reponse large" rows="6" spellcheck="false" placeholder="Adèle : MUE1.eyJwIjoi…"></textarea>
+  <textarea id="codes" class="reponse large" rows="5" spellcheck="false" placeholder="Adèle : MUE1.eyJwIjoi…"></textarea>
   <div class="actions">
-    <button class="btn secondaire" id="exemple">Essayer avec une classe fictive</button>
-    <button class="btn lien" id="vider">Tout effacer</button>
+    <button class="btn" id="ajouter">Ajouter ces codes</button>
+    <label for="defaut" class="en-ligne">Codes sans classe : les ranger dans</label>
+    <select id="defaut"><option value="">Sans classe</option></select>
+    <button class="btn lien" id="exemple">Essayer avec deux classes fictives</button>
   </div>
   <p id="etat" class="muet" aria-live="polite"></p>
+  <nav id="onglets" class="onglets" role="tablist" aria-label="Classes"></nav>
+  <div id="nouvelle" class="gestion" hidden>
+    <label for="nom-classe" class="en-ligne">Nom de la nouvelle classe</label>
+    <input id="nom-classe" class="court" type="text" maxlength="12" placeholder="2DE4" autocomplete="off">
+    <button class="btn secondaire" id="creer">Créer</button>
+  </div>
   <div id="resultats"></div>
+  <h2>Sauvegarde</h2>
+  <p class="prose">Les classes sont conservées dans ce navigateur. Pour les retrouver sur un autre poste, enregistrez un fichier de sauvegarde ici, puis restaurez-le là-bas : les deux jeux de données sont fusionnés.</p>
+  <div class="actions">
+    <button class="btn secondaire" id="exp">Enregistrer un fichier de sauvegarde</button>
+    <label class="btn secondaire" for="imp">Restaurer une sauvegarde</label><input type="file" id="imp" accept="application/json,.json" class="sr">
+    <button class="btn lien danger" id="vider">Tout effacer</button>
+  </div>
 </main>
 <footer class="pied">
-  <span>Tout est calculé dans ce navigateur. Les codes collés y restent enregistrés jusqu'à ce que vous les effaciez ; rien n'est envoyé sur Internet.</span>
+  <span>Tout est calculé dans ce navigateur. Les codes y restent enregistrés jusqu'à ce que vous les effaciez ; rien n'est envoyé sur Internet.</span>
 </footer>
 <script src="js/contenu.js"></script>
 <script src="js/bilan.js"></script>
