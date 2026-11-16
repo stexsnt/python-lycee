@@ -55,3 +55,4 @@ Avant de publier, vérifiez que chaque solution passe bien ses tests :
 Le site en ligne est servi depuis la branche `gh-pages`. À chaque envoi sur `main`, `.github/workflows/publier.yml` lance
 `tests/verifier.js`, puis recopie `main` sur `gh-pages`. Si une vérification échoue, rien n'est publié : le détail
 se lit dans l'onglet « Actions » du dépôt. Une modification faite sur GitHub avec l'icône crayon est donc publiée toute seule.
+- `documents/guide-prise-en-main.pdf` : guide de prise en main pour l'enseignant, lié depuis l'espace professeur et le pied de page. Il est tiré du guide complet, dont on retire le contenu intégral et tous les corrigés ; le guide complet ne doit pas être publié.
