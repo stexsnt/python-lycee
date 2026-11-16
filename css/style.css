@@ -361,3 +361,7 @@ dialog.projection form { margin-top: 1.2rem; }
 /* ----- Lien vers le livret de l'élève, sous les boutons de l'accueil ----- */
 .livret-lien { margin: 1.4rem 0 0; font-size: .95rem; color: var(--encre2); max-width: 34rem; font-family: var(--ui, var(--texte)); }
 .livret-lien a { color: inherit; font-weight: 700; text-underline-offset: 3px; }
+
+/* ----- Graphiques matplotlib affichés dans la console ----- */
+.cons img.figure { display: block; max-width: 100%; height: auto; margin: .6rem 0; background: #fff; border-radius: 10px; border: 1px solid var(--trait); }
+#etat-python[data-etat="paquets"]::before { background: var(--soleil); }

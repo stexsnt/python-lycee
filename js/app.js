@@ -6,6 +6,25 @@ const XP_BASE = { lecon: 5, qcm: 10, predire: 10, ordre: 15 };
 const TOUS = [...PARCOURS.flatMap(p => p.chapitres), DEFIS];
 const BAC_DEPART = `# Bac à sable : écris ce que tu veux, rien n'est noté.\nprenom = input("Ton prénom ? ")\nfor i in range(3):\n    print("Bonjour", prenom, "!" * (i + 1))\n`;
 
+const BAC_COURBE = `# Tracer une courbe avec matplotlib (téléchargé à la première utilisation).
+import matplotlib.pyplot as plt
+
+def f(x):
+    return x ** 2 - 2 * x - 1
+
+xs = [-2 + 0.1 * k for k in range(61)]      # 61 abscisses de -2 à 4
+ys = [f(x) for x in xs]
+
+plt.plot(xs, ys, label="f(x) = x² − 2x − 1")
+plt.axhline(0, color="gray", linewidth=0.8)
+plt.title("Courbe représentative de f")
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.legend()
+plt.grid(True)
+plt.show()
+`;
+
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const h = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -153,7 +172,7 @@ const AIDE = {
   KeyError: "Cette clé n'existe pas dans le dictionnaire.",
   AttributeError: "Cet objet ne possède pas cette méthode. Vérifie son nom et le type de la variable.",
   RecursionError: "La fonction s'appelle elle-même sans jamais s'arrêter. Il manque un cas de base, ou l'appel ne s'en rapproche pas.",
-  ModuleNotFoundError: "Ce module n'est pas disponible ici. Les modules math et random le sont.",
+  ModuleNotFoundError: "Ce module n'est pas disponible ici. Les modules math, random, matplotlib et numpy le sont (les deux derniers demandent une connexion la première fois).",
   ImportError: "Ce nom n'existe pas dans le module. Vérifie l'orthographe.",
   UnboundLocalError: "Dans une fonction, cette variable est utilisée avant d'avoir reçu une valeur.",
   Temps: "Le programme a été arrêté car il tournait depuis trop longtemps. C'est sans doute une boucle infinie : dans une boucle while, quelque chose doit finir par rendre la condition fausse.",
@@ -165,8 +184,9 @@ function blocErreur(er) {
   return `<div class="err"><strong>${er.ligne ? `Ligne ${er.ligne}, ` : ""}${h(NOM_ERR[er.type] || er.type)}</strong><p>${AIDE[er.type] || "Python a rencontré une erreur pendant l'exécution."}</p>${er.msg ? `<code>${h(er.msg)}</code>` : ""}</div>`;
 }
 function afficherRes(cons, res) {
-  const rien = !res.sortie && !res.erreur && res.besoin == null;
+  const images = res.images || [], rien = !res.sortie && !res.erreur && res.besoin == null && !images.length;
   cons.innerHTML = (res.sortie ? `<pre>${h(res.sortie)}</pre>` : "") +
+    images.map((b, k) => `<img class="figure" alt="Graphique ${images.length > 1 ? k + 1 + " " : ""}tracé par le programme" src="data:image/png;base64,${b}">`).join("") +
     (rien ? `<p class="muet">Le programme s'est terminé sans rien afficher. Utilise print(...) pour voir un résultat.</p>` : "") +
     (res.erreur ? blocErreur(res.erreur) : "");
 }
@@ -531,13 +551,18 @@ function vueDefis() {
 
 function vueBac() {
   app().innerHTML = `<section class="page bac"><h1>Bac à sable</h1><p class="prose">Un espace libre pour tester une idée, vérifier un calcul ou préparer un exercice de maths. Ton programme est conservé d'une visite à l'autre.</p>
-  <div class="ed-hote"></div><div class="actions"><button class="btn" id="run">Exécuter</button><button class="btn secondaire" id="pap">Pas à pas</button><button class="btn secondaire" id="dl">Télécharger le fichier .py</button><button class="btn lien" id="vider">Tout effacer</button></div><div class="cons"><p class="muet">Le résultat s'affichera ici. Raccourci : Ctrl + Entrée.</p></div></section>`;
+  <div class="ed-hote"></div><div class="actions"><button class="btn" id="run">Exécuter</button><button class="btn secondaire" id="pap">Pas à pas</button><button class="btn secondaire" id="dl">Télécharger le fichier .py</button><button class="btn lien" id="ex-courbe">Exemple : tracer une courbe</button><button class="btn lien" id="vider">Tout effacer</button></div><div class="cons"><p class="muet">Le résultat s'affichera ici. Raccourci : Ctrl + Entrée.</p></div></section>`;
   const cons = $(".cons"), ed = editeur(S.bac.code, { min: 14, onChange: v => { S.bac.code = v; sauver(); }, onRun: () => go() });
   $(".ed-hote").appendChild(ed.el);
   const go = async () => { S.bac.runs++; verifierBadges(); sauver(); await executerInteractif(ed.valeur(), cons); };
   $("#run").onclick = go;
   $("#pap").onclick = () => { S.bac.runs++; verifierBadges(); sauver(); return pasAPas(ed.valeur(), cons); };
   $("#vider").onclick = () => { ed.fixer(""); ed.focus(); };
+  $("#ex-courbe").onclick = () => {
+    const actuel = ed.valeur().trim();
+    if (actuel && actuel !== BAC_DEPART.trim() && actuel !== BAC_COURBE.trim()) return toast("Ton programme serait remplacé : clique d'abord sur « Tout effacer ».", "erreur");
+    ed.fixer(BAC_COURBE); ed.focus();
+  };
   $("#dl").onclick = () => telecharger("programme.py", ed.valeur(), "text/x-python");
 }
 function telecharger(nom, contenu, type) {
@@ -609,7 +634,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const clLien = normClasse(new URLSearchParams(location.search).get("classe"));   // lien donné par le professeur
   if (clLien) { if (!S.classe) { S.classe = clLien; sauver(); setTimeout(() => toast(`Classe enregistrée dans ton profil : ${clLien}`), 600); } history.replaceState(null, "", location.pathname + location.hash); }
   $("#btn-theme").onclick = () => { S.theme = document.documentElement.dataset.theme === "sombre" ? "clair" : "sombre"; sauver(); appliquerTheme(); };
-  const afficherEtat = e => { const p = $("#etat-python"); p.dataset.etat = e; p.textContent = { repos: "Python se chargera au premier exercice de code", chargement: "Python se prépare…", pret: "Python est prêt", echec: "Python indisponible" }[e]; };
+  const afficherEtat = e => { const p = $("#etat-python"); p.dataset.etat = e; p.textContent = { repos: "Python se chargera au premier exercice de code", chargement: "Python se prépare…", paquets: "Chargement de matplotlib…", pret: "Python est prêt", echec: "Python indisponible" }[e]; };
   Moteur.surEtat(afficherEtat); afficherEtat(Moteur.etat());   // Python démarre à la demande : voir Moteur.preparer
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
   route();

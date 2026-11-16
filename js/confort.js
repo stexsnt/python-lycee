@@ -16,6 +16,7 @@
     if (!p) return;
     minuteurs.forEach(clearTimeout); minuteurs = [];
     p.removeAttribute("title");
+    if (e === "paquets") toast("Chargement de matplotlib… La première fois, cela prend quelques secondes.");
     if (e === "chargement") {
       minuteurs.push(setTimeout(() => {
         if (Moteur.etat() === "chargement") p.textContent = "Python se prépare… La première visite télécharge environ 13 Mo.";

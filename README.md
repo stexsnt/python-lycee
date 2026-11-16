@@ -55,3 +55,4 @@ Avant de publier, vérifiez que chaque solution passe bien ses tests :
 Le site en ligne est servi depuis la branche `gh-pages`. À chaque envoi sur `main`, `.github/workflows/publier.yml` lance
 `tests/verifier.js`, puis recopie `main` sur `gh-pages`. Si une vérification échoue, rien n'est publié : le détail
 se lit dans l'onglet « Actions » du dépôt. Une modification faite sur GitHub avec l'icône crayon est donc publiée toute seule.
+- `import matplotlib.pyplot as plt` et `import numpy` fonctionnent : les modules sont téléchargés à la première utilisation depuis `/pyodide/`, et chaque figure s'affiche en image sous le programme (`plt.show()` ou fin du programme). Voir `_figures` et `paquets` dans `js/moteur.js`.

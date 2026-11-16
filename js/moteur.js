@@ -11,7 +11,7 @@ const PYODIDE_SOURCES = typeof location === "undefined" ? [] : [...new Set([
   new URL("pyodide/", location.href).href,
   "https://cdn.jsdelivr.net/npm/pyodide@314.0.7/",
 ])];
-const DELAI_MAX = 8000;
+const DELAI_MAX = 8000, DELAI_PAQUETS = 120000;
 
 const PY_HARNESS = String.raw`
 import sys, io, json, random, traceback, ast
@@ -113,10 +113,32 @@ def _structure(code, regles):
             res["depend"].append([var, noms])
     return res
 
+# Graphiques : matplotlib dessine hors écran ; chaque figure est rendue en image PNG et jointe au résultat.
+_images = []
+
+def _figures(*args, **kwargs):
+    plt = sys.modules.get("matplotlib.pyplot")
+    if plt is None:
+        return
+    import base64
+    for n in plt.get_fignums():
+        if len(_images) < 4:
+            tampon = io.BytesIO()
+            plt.figure(n).savefig(tampon, format="png", dpi=100, bbox_inches="tight")
+            _images.append(base64.b64encode(tampon.getvalue()).decode())
+    plt.close("all")
+
+def _preparer_matplotlib():
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    plt.show = _figures          # plt.show() joint la figure au résultat au lieu d'ouvrir une fenêtre
+
 def _lancer(arguments):
     a = json.loads(arguments)
     if "regles" in a:
         return json.dumps(_structure(a["code"], a["regles"]))
+    _images.clear()
     sortie = _Sortie()
     attente = list(a.get("entrees") or [])
     test = a.get("test", False)
@@ -193,6 +215,12 @@ def _lancer(arguments):
         res["erreur"] = {"type": type(e).__name__, "msg": str(e), "ligne": _ligne(e)}
     finally:
         sys.stdout = ancien
+    try:
+        _figures()
+    except BaseException:
+        pass
+    if _images:
+        res["images"] = list(_images)
     res["sortie"] = sortie.getvalue()
     if a.get("trace"):
         res["pas"] = pas
@@ -230,7 +258,24 @@ let py = null;
   py.runPython(${JSON.stringify(PY_HARNESS)});
   postMessage({ pret: true });
 })();
-onmessage = e => {
+// matplotlib et numpy ne sont téléchargés que si le programme les importe (environ 13 Mo la première fois).
+const charges = {};
+async function paquets(code, id) {
+  const noms = [];
+  if (/^\\s*(?:import|from)\\s+matplotlib\\b/m.test(code)) noms.push("matplotlib");
+  if (/^\\s*(?:import|from)\\s+numpy\\b/m.test(code)) noms.push("numpy");
+  const manquants = noms.filter(n => !charges[n]);
+  if (!manquants.length) return;
+  postMessage({ id, charge: true });
+  try {
+    await py.loadPackage(manquants);
+    if (manquants.includes("matplotlib")) py.runPython("_preparer_matplotlib()");
+    manquants.forEach(n => charges[n] = true);
+  } catch (e) { /* hors connexion : le programme signalera lui-même le module manquant */ }
+  postMessage({ id, charge: false });
+}
+onmessage = async e => {
+  if (typeof e.data.code === "string") await paquets(e.data.code, e.data.id);
   const r = py.globals.get("_lancer")(JSON.stringify(e.data));
   postMessage({ id: e.data.id, res: JSON.parse(r) });
 };`;
@@ -246,6 +291,12 @@ onmessage = e => {
       w.onmessage = e => {
         if (e.data.pret) { changer("pret"); ok(); }
         else if (e.data.echec) { changer("echec"); ko(new Error(e.data.echec)); }
+        else if (attente && e.data.id === attente.id && "charge" in e.data) {
+          // Téléchargement d'un module : il ne compte pas dans le temps accordé au programme.
+          clearTimeout(attente.minuteur);
+          attente.minuteur = setTimeout(attente.expire, e.data.charge ? DELAI_PAQUETS : DELAI_MAX);
+          changer(e.data.charge ? "paquets" : "pret");
+        }
         else if (attente && e.data.id === attente.id) {
           clearTimeout(attente.minuteur);
           const a = attente; attente = null; a.ok(e.data.res);
@@ -266,11 +317,11 @@ onmessage = e => {
       catch (e) { return { sortie: "", erreur: { type: "Chargement", msg: "", ligne: null }, besoin: null, appels: [] }; }
       return new Promise(ok => {
         const id = ++n;
-        const minuteur = setTimeout(() => {
+        const expire = () => {
           w.terminate(); attente = null; demarrer();
           ok({ sortie: "", erreur: { type: "Temps", msg: "", ligne: null }, besoin: null, appels: [] });
-        }, DELAI_MAX);
-        attente = { id, ok, minuteur };
+        };
+        attente = { id, ok, expire, minuteur: setTimeout(expire, DELAI_MAX) };
         w.postMessage(Object.assign({ id, graine: Math.floor(Math.random() * 1e9) }, opts));
       });
     });
