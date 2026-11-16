@@ -80,7 +80,7 @@ function onglets() {
   const noms = nomsClasses(), z = $("#onglets");
   if (!noms.length) { z.innerHTML = ""; return; }
   const b = (id, txt, n) => `<button role="tab" data-onglet="${h(id)}" aria-selected="${onglet === id}">${h(txt)} <span class="nb">${n}</span></button>`;
-  z.innerHTML = (noms.length > 1 ? b("*", "Toutes les classes", eleves("*").length) : "") + noms.map(cl => b(cl, nomClasse(cl), Object.keys(B.classes[cl].eleves).length)).join("") + `<button data-onglet="+" aria-selected="false">+ Classe</button>`;
+  z.innerHTML = `<span role="tablist" aria-label="Classes">` + (noms.length > 1 ? b("*", "Toutes les classes", eleves("*").length) : "") + noms.map(cl => b(cl, nomClasse(cl), Object.keys(B.classes[cl].eleves).length)).join("") + `</span><button data-onglet="+">+ Classe</button>`;
   const s = $("#defaut"), v = s.value;
   s.innerHTML = `<option value="">Sans classe</option>` + noms.filter(cl => cl !== SANS).map(cl => `<option value="${h(cl)}">${h(cl)}</option>`).join("");
   s.value = noms.includes(v) ? v : "";

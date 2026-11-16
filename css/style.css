@@ -310,6 +310,7 @@ table.classe, table.etapes { border-collapse: collapse; width: 100%; font-size: 
 /* Espace professeur : plusieurs classes */
 .onglets { display: flex; flex-wrap: wrap; gap: .3rem; margin: 2.2rem 0 0; border-bottom: 2px solid var(--trait); }
 .onglets:empty { display: none; }
+.onglets > [role="tablist"] { display: contents; }
 .onglets button { font: 700 1rem var(--texte); color: var(--encre2); background: none; border: 2px solid transparent; border-bottom: 0; border-radius: 10px 10px 0 0; padding: .55rem .9rem; margin-bottom: -2px; cursor: pointer; }
 .onglets button:hover { color: var(--encre); }
 .onglets button[aria-selected="true"] { color: var(--encre); background: var(--carte); border-color: var(--trait); }

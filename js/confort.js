@@ -103,3 +103,19 @@
   document.addEventListener("DOMContentLoaded", lienLivret);
   window.addEventListener("hashchange", () => setTimeout(lienLivret, 0));
 })();
+
+/* ---------- Accessibilité : un bloc de code qui défile doit pouvoir recevoir le clavier ---------- */
+(function () {
+  function rendreDefilables() {
+    document.querySelectorAll("#app pre:not([tabindex])").forEach(p => {
+      if (p.closest("[aria-hidden]")) return;                // calque de coloration de l'éditeur
+      if (p.scrollWidth > p.clientWidth + 1) { p.tabIndex = 0; p.setAttribute("role", "region"); p.setAttribute("aria-label", "Programme, défilement horizontal"); }
+    });
+  }
+  document.addEventListener("DOMContentLoaded", () => {
+    const app = document.getElementById("app");
+    if (app) new MutationObserver(() => setTimeout(rendreDefilables, 0)).observe(app, { childList: true });
+    rendreDefilables();
+  });
+  window.addEventListener("resize", rendreDefilables);
+})();
