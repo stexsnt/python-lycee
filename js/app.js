@@ -109,6 +109,7 @@ const blocCode = code => `<pre class="code">${colorer(code)}</pre>`;
 
 /* Éditeur léger : textarea transparent posé sur une couche colorée. */
 function editeur(code, opts = {}) {
+  Moteur.preparer();   // un éditeur s'affiche : Python sera prêt quand l'élève lancera son programme
   const el = document.createElement("div"); el.className = "ed";
   el.innerHTML = `<div class="ed-num" aria-hidden="true"></div><div class="ed-zone"><pre class="ed-hl" aria-hidden="true"></pre><textarea spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="${h(opts.label || "Éditeur de code Python")}"></textarea></div>`;
   const ta = $("textarea", el), hl = $(".ed-hl", el), num = $(".ed-num", el);
@@ -608,8 +609,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const clLien = normClasse(new URLSearchParams(location.search).get("classe"));   // lien donné par le professeur
   if (clLien) { if (!S.classe) { S.classe = clLien; sauver(); setTimeout(() => toast(`Classe enregistrée dans ton profil : ${clLien}`), 600); } history.replaceState(null, "", location.pathname + location.hash); }
   $("#btn-theme").onclick = () => { S.theme = document.documentElement.dataset.theme === "sombre" ? "clair" : "sombre"; sauver(); appliquerTheme(); };
-  Moteur.surEtat(e => { const p = $("#etat-python"); p.dataset.etat = e; p.textContent = { chargement: "Python se prépare…", pret: "Python est prêt", echec: "Python indisponible" }[e]; });
-  Moteur.demarrer();
+  const afficherEtat = e => { const p = $("#etat-python"); p.dataset.etat = e; p.textContent = { repos: "Python se chargera au premier exercice de code", chargement: "Python se prépare…", pret: "Python est prêt", echec: "Python indisponible" }[e]; };
+  Moteur.surEtat(afficherEtat); afficherEtat(Moteur.etat());   // Python démarre à la demande : voir Moteur.preparer
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
   route();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(dessinerSerpents);

@@ -47,3 +47,4 @@ Avant de publier, vérifiez que chaque solution passe bien ses tests :
 - Sur téléphone, le profil propose « Envoyer mon code » par le menu de partage.
 - Python (Pyodide) est chargé en priorité depuis `https://stexsnt.github.io/pyodide/`, copie partagée par les quatre sites et rangée dans un cache commun : un élève ne le télécharge qu'une fois. Le dossier `pyodide/` du dépôt reste la copie de secours.
 - Chaque étape a un numéro stable (voir `numeros` dans `js/bilan.js`) : on peut insérer une étape au milieu d'un chapitre sans décaler la progression des élèves ni les codes déjà reçus par le professeur.
+- Python ne démarre que lorsqu'une page affiche un éditeur de code ou lance une exécution (`Moteur.preparer` dans `js/moteur.js`) : les leçons et les questions s'ouvrent sans lui. Le service worker continue de le mettre en cache en arrière-plan pour le mode hors connexion.

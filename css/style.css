@@ -64,6 +64,7 @@ main { max-width: 1120px; margin: 0 auto; padding: clamp(1.2rem, 3vw, 2.5rem) cl
 .famille a { white-space: nowrap; }
 #etat-python::before { content: ""; display: inline-block; width: .6em; height: .6em; border-radius: 50%; margin-right: .4em; background: var(--soleil); }
 #etat-python[data-etat="pret"]::before { background: var(--ecaille); }
+#etat-python[data-etat="repos"]::before { background: var(--encre2); opacity: .5; }
 #etat-python[data-etat="echec"]::before { background: var(--corail); }
 
 /* Boutons */

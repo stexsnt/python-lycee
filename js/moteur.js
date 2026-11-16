@@ -1,4 +1,6 @@
 /* Moteur d'exécution : Python (Pyodide) dans un Web Worker.
+   Python n'est démarré qu'au moment où une page en a besoin (Moteur.preparer, appelé dès qu'un éditeur
+   de code s'affiche, ou à la première exécution) : les leçons et les questions s'ouvrent sans lui.
    Le worker est coupé puis relancé si un programme tourne trop longtemps. */
 
 /* Pyodide est d'abord cherché à la racine du domaine (dossier /pyodide/, partagé par Mue, Synapse, Périple
@@ -214,7 +216,7 @@ function memesSorties(a, b) {
 }
 
 const Moteur = (() => {
-  let w, pret, attente = null, n = 0, file = Promise.resolve(), etat = "chargement";
+  let w, pret, attente = null, n = 0, file = Promise.resolve(), etat = "repos";
   const ecouteurs = [];
   const source = `const SOURCES = ${JSON.stringify(PYODIDE_SOURCES)};
 let py = null;
@@ -254,7 +256,11 @@ onmessage = e => {
     pret.catch(() => {});
   }
 
+  // Démarre Python s'il ne tourne pas encore (ou relance après un échec).
+  function preparer() { if (etat === "repos" || etat === "echec") demarrer(); }
+
   function executer(opts) {
+    preparer();
     const tache = file.then(async () => {
       try { await pret; }
       catch (e) { return { sortie: "", erreur: { type: "Chargement", msg: "", ligne: null }, besoin: null, appels: [] }; }
@@ -273,7 +279,7 @@ onmessage = e => {
   }
 
   return {
-    demarrer, executer,
+    demarrer, preparer, executer,
     etat: () => etat,
     surEtat: f => ecouteurs.push(f),
   };
