@@ -46,3 +46,4 @@ Avant de publier, vérifiez que chaque solution passe bien ses tests :
 - Le pied de page renvoie vers le portail https://stexsnt.github.io/ et les trois autres sites.
 - `js/prof-plus.js` et `js/qrcode.min.js` (espace professeur) : QR code du lien de classe, à projeter, et impression du tableau de classe.
 - Sur téléphone, le profil propose « Envoyer mon code » par le menu de partage.
+- Python (Pyodide) est chargé en priorité depuis `https://stexsnt.github.io/pyodide/`, copie partagée par les quatre sites et rangée dans un cache commun : un élève ne le télécharge qu'une fois. Le dossier `pyodide/` du dépôt reste la copie de secours.

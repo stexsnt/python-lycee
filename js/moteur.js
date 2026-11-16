@@ -1,11 +1,14 @@
 /* Moteur d'exécution : Python (Pyodide) dans un Web Worker.
    Le worker est coupé puis relancé si un programme tourne trop longtemps. */
 
-/* Pyodide est servi par le site lui-même (dossier pyodide/). Le CDN ne sert que de secours. */
-const PYODIDE_SOURCES = typeof location === "undefined" ? [] : [
-  (typeof window !== "undefined" && window.MUE_PYODIDE) || new URL("pyodide/", location.href).href,
+/* Pyodide est d'abord cherché à la racine du domaine (dossier /pyodide/, partagé par Mue, Synapse, Périple
+   et Sésame : un seul téléchargement pour les quatre sites), puis dans le dossier pyodide/ du site lui-même.
+   Le CDN ne sert que de dernier secours. */
+const PYODIDE_SOURCES = typeof location === "undefined" ? [] : [...new Set([
+  (typeof window !== "undefined" && window.MUE_PYODIDE) || new URL("/pyodide/", location.href).href,
+  new URL("pyodide/", location.href).href,
   "https://cdn.jsdelivr.net/npm/pyodide@314.0.7/",
-];
+])];
 const DELAI_MAX = 8000;
 
 const PY_HARNESS = String.raw`
