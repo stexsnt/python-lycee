@@ -44,3 +44,5 @@ Avant de publier, vérifiez que chaque solution passe bien ses tests :
 - `manifest.webmanifest` et `icones/` : le site peut être installé sur l'écran d'accueil d'un téléphone ou d'une tablette.
 - Toutes les polices sont dans `polices/` : le site n'appelle aucun service externe.
 - Le pied de page renvoie vers le portail https://stexsnt.github.io/ et les trois autres sites.
+- `js/prof-plus.js` et `js/qrcode.min.js` (espace professeur) : QR code du lien de classe, à projeter, et impression du tableau de classe.
+- Sur téléphone, le profil propose « Envoyer mon code » par le menu de partage.

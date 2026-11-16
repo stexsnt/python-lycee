@@ -68,3 +68,24 @@
   });
   window.addEventListener("hashchange", () => setTimeout(rappel, 0));
 })();
+
+/* ---------- Profil : envoyer son code au professeur par le menu de partage ---------- */
+(function () {
+  if (!navigator.share) return;                       // ordinateurs sans partage : le bouton « Code pour mon professeur » copie déjà le code
+  function bouton() {
+    const origine = document.getElementById("codeprof");
+    if (!origine || document.getElementById("partager-code")) return;
+    const b = document.createElement("button");
+    b.type = "button"; b.id = "partager-code"; b.className = "btn secondaire"; b.textContent = "Envoyer mon code";
+    b.onclick = async () => {
+      if (!S.pseudo) { toast("Indique d'abord ton prénom dans le champ ci-dessus.", "erreur"); const p = document.getElementById("pseudo"); if (p) p.focus(); return; }
+      try { await navigator.share({ text: `${S.pseudo} : ${coderBilan(S, aujourdhui())}` }); } catch (e) { /* partage annulé */ }
+    };
+    origine.after(b);
+  }
+  document.addEventListener("DOMContentLoaded", () => {
+    const app = document.getElementById("app");
+    if (app) new MutationObserver(bouton).observe(app, { childList: true });
+    bouton();
+  });
+})();

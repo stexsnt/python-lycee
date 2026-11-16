@@ -332,3 +332,26 @@ table.classe, table.etapes { border-collapse: collapse; width: 100%; font-size: 
 .rappel-sauv .actions { margin: 0; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 #etat-python .reessayer { min-height: 0; padding: 0 .2rem; font-size: inherit; }
 @media (min-width: 761px) { .rappel-sauv { bottom: 1rem; left: auto; } }
+
+/* ----- Espace professeur : QR code du lien de classe et impression (js/prof-plus.js) ----- */
+.qr-lien { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem 1.2rem; margin-top: .8rem; }
+.qr-lien .qr { display: block; width: 8.5rem; flex: none; border-radius: 8px; overflow: hidden; border: 1px solid var(--trait); }
+.qr svg { display: block; width: 100%; height: auto; }
+dialog.projection { border: 0; border-radius: 20px; padding: clamp(1.2rem, 4vw, 2.5rem); background: #fff; color: #14213D; text-align: center; max-width: min(92vw, 44rem); font-family: var(--ui, var(--texte)); }
+dialog.projection::backdrop { background: rgba(8, 12, 30, .82); }
+dialog.projection h2 { margin: 0 0 .6rem; font-size: clamp(1.8rem, 5vw, 3rem); color: #14213D; }
+dialog.projection .qr { width: min(70vh, 76vw, 30rem); margin: 0 auto; }
+dialog.projection p { margin: .8rem 0 0; font-size: clamp(1.05rem, 2.4vw, 1.5rem); color: #14213D; }
+dialog.projection .adresse { font-family: var(--mono); font-size: clamp(.8rem, 1.6vw, 1.05rem); overflow-wrap: anywhere; color: #4A5672; }
+dialog.projection form { margin-top: 1.2rem; }
+@media print {
+  .prof { background: #fff; color: #000; }
+  .prof .entete, .prof .pied, .prof main > :not(#resultats), .prof #resultats .actions, .prof #resultats .gestion, .prof #resultats details, .prof #lien-txt, .prof #resultats .ligne-outils, .prof #detail .actions { display: none !important; }
+  .prof main { max-width: none; margin: 0; padding: 0; }
+  .prof .defile { overflow: visible; border: 0; }
+  .prof table.classe, .prof table.etapes { font-size: 8.5pt; color: #000; }
+  .prof table.classe th, .prof table.classe td { border: 1px solid #999; }
+  .prof table.classe button { all: unset; font: inherit; font-weight: 700; }
+  .prof h2 { color: #000; break-after: avoid; }
+  @page { size: A4 landscape; margin: 12mm; }
+}
