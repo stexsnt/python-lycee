@@ -89,3 +89,17 @@
     bouton();
   });
 })();
+
+/* ---------- Accueil : lien vers le livret de l'élève (documents/livret-eleve.pdf) ---------- */
+(function () {
+  function lienLivret() {
+    const hote = document.querySelector("#app .hero-texte");
+    if (!hote || hote.querySelector(".livret-lien")) return;
+    const p = document.createElement("p");
+    p.className = "livret-lien";
+    p.innerHTML = `<a href="documents/livret-eleve.pdf" target="_blank" rel="noopener">Le livret de l'élève (PDF à imprimer)</a> : mode d'emploi, carnet de route et activités sur papier.`;
+    hote.appendChild(p);
+  }
+  document.addEventListener("DOMContentLoaded", lienLivret);
+  window.addEventListener("hashchange", () => setTimeout(lienLivret, 0));
+})();

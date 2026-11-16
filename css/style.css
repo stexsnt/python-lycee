@@ -356,3 +356,7 @@ dialog.projection form { margin-top: 1.2rem; }
   .prof h2 { color: #000; break-after: avoid; }
   @page { size: A4 landscape; margin: 12mm; }
 }
+
+/* ----- Lien vers le livret de l'élève, sous les boutons de l'accueil ----- */
+.livret-lien { margin: 1.4rem 0 0; font-size: .95rem; color: var(--encre2); max-width: 34rem; font-family: var(--ui, var(--texte)); }
+.livret-lien a { color: inherit; font-weight: 700; text-underline-offset: 3px; }
