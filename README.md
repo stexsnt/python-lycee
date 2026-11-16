@@ -36,5 +36,11 @@ Avant de publier, vérifiez que chaque solution passe bien ses tests :
   `pyodide/` du dépôt. Le CDN jsdelivr ne sert que de secours si ce dossier est absent.
 - Le fichier `sw.js` met le site en cache : après une première visite complète, il
   fonctionne hors connexion. Les mises à jour du contenu arrivent dès qu'il y a du réseau.
-- Polices chargées depuis fonts.bunny.net (service européen sans traceur). Sans elles,
-  le site utilise les polices du système.
+
+## Confort d'usage
+
+- `js/confort.js` (identique sur Mue, Synapse, Périple et Sésame) : message plus clair pendant le chargement de Python,
+  bouton « Réessayer » en cas d'échec, et rappel de sauvegarde quand huit étapes ont été validées depuis la dernière sauvegarde.
+- `manifest.webmanifest` et `icones/` : le site peut être installé sur l'écran d'accueil d'un téléphone ou d'une tablette.
+- Toutes les polices sont dans `polices/` : le site n'appelle aucun service externe.
+- Le pied de page renvoie vers le portail https://stexsnt.github.io/ et les trois autres sites.

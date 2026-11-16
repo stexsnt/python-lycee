@@ -1,0 +1,25 @@
+{
+  "name": "Mue, apprendre Python au lycée",
+  "short_name": "Mue",
+  "description": "Leçons courtes et exercices Python corrigés automatiquement, de la Seconde à la Terminale.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3F6F1",
+  "theme_color": "#F3F6F1",
+  "icons": [
+    {
+      "src": "icones/icone-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icones/icone-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
