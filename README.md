@@ -49,3 +49,9 @@ Avant de publier, vérifiez que chaque solution passe bien ses tests :
 - Chaque étape a un numéro stable (voir `numeros` dans `js/bilan.js`) : on peut insérer une étape au milieu d'un chapitre sans décaler la progression des élèves ni les codes déjà reçus par le professeur.
 - Python ne démarre que lorsqu'une page affiche un éditeur de code ou lance une exécution (`Moteur.preparer` dans `js/moteur.js`) : les leçons et les questions s'ouvrent sans lui. Le service worker continue de le mettre en cache en arrière-plan pour le mode hors connexion.
 - `documents/livret-eleve.pdf` : le livret de l'élève, lié depuis l'accueil et le pied de page. Il ne contient aucun corrigé. Le guide de l'enseignant, qui contient les réponses, n'est volontairement pas publié. Remplacer ce fichier quand le livret est mis à jour.
+
+## Publication automatique
+
+Le site en ligne est servi depuis la branche `gh-pages`. À chaque envoi sur `main`, `.github/workflows/publier.yml` lance
+`tests/verifier.js`, puis recopie `main` sur `gh-pages`. Si une vérification échoue, rien n'est publié : le détail
+se lit dans l'onglet « Actions » du dépôt. Une modification faite sur GitHub avec l'icône crayon est donc publiée toute seule.

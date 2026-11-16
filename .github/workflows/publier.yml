@@ -1,0 +1,36 @@
+# À chaque envoi sur la branche main : vérifie le contenu, puis met le site en ligne.
+# Le site est servi par GitHub Pages depuis la branche gh-pages ; ce fichier la tient à jour.
+# Si une vérification échoue, rien n'est publié : le détail est dans l'onglet « Actions » du dépôt.
+name: Vérifier et publier
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publication
+  cancel-in-progress: false
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Vérifier que chaque solution passe ses tests
+        run: |
+          cd tests
+          npm install --no-save --no-package-lock pyodide@314.0.7
+          node verifier.js
+      - name: Vérifier la syntaxe des fichiers JavaScript
+        run: for f in js/*.js sw.js; do node --check "$f"; done
+      - name: Mettre le site en ligne
+        run: git push origin HEAD:gh-pages

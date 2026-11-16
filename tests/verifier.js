@@ -69,5 +69,5 @@ for (const c of [...PARCOURS.flatMap(p => p.chapitres), DEFIS]) {
     R("longueur = 8\nlargeur = 5\nd = longueur + largeur\nperimetre = 2 * d", { depend: { perimetre: ["longueur", "largeur"] } }), R("print('100 % sûr')\nL.sort()", { interdit: ["%", "sort", "sorted"] }));
   console.log(nbCaches, "tests cachés");
   console.log(`${n} étapes vérifiées, ${ko} échec(s)`);
-  process.exit(ko ? 1 : 0);
+  process.exit(ko || process.exitCode ? 1 : 0);   // process.exitCode : numéro d'étape en double (contrôle en tête de fichier)
 })();
