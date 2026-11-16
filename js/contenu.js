@@ -18,8 +18,10 @@
                                                   listes de saisies, ou appels de fonction ; le résultat
                                                   attendu est celui de la solution }
 
-   Conseil : ajoutez les nouvelles étapes À LA FIN d'un chapitre,
-   la progression des élèves est enregistrée par position.
+   Où ajouter une étape : à la fin d'un chapitre, sans rien de plus. Pour l'insérer AU MILIEU, lui donner
+   « numero: n », où n est le premier numéro libre (le nombre d'étapes du chapitre avant l'ajout,
+   si aucune n'a encore de numéro). Les autres étapes gardent ainsi leur numéro et la progression des
+   élèves n'est pas décalée. Ne jamais supprimer ni réutiliser un numéro ; tests/verifier.js le contrôle.
    ============================================================ */
 
 const table = n => Array.from({ length: 10 }, (_, k) => `${n} x ${k + 1} = ${n * (k + 1)}`).join("\n");

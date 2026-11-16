@@ -18,11 +18,25 @@ const depuisB64 = s => decodeURIComponent(escape(atob(s.replace(/-/g, "+").repla
 /* Nom de classe : majuscules, sans espace, 12 caractères au plus (« 2de 4 » devient « 2DE4 »). */
 const normClasse = s => String(s || "").toUpperCase().replace(/[^A-Z0-9À-Ý-]/g, "").slice(0, 12);
 
-/* Un caractère par étape et par chapitre : 0 = pas faite, 1 à 3 = nombre d'étoiles. */
+/* Numéro d'une étape dans son chapitre : c'est lui qui repère l'étape dans la progression enregistrée
+   et dans les codes envoyés au professeur. Par défaut, c'est son rang parmi les étapes sans numéro
+   (0, 1, 2…). Une étape ajoutée après coup au milieu d'un chapitre porte « numero: n », avec n égal au
+   premier numéro libre : les autres étapes gardent ainsi le leur et aucune progression n'est décalée. */
+function numeros(c) {
+  if (c._numeros && c._numeros.length === c.etapes.length) return c._numeros;
+  let k = 0;
+  return c._numeros = c.etapes.map(e => Number.isInteger(e.numero) ? e.numero : k++);
+}
+const numEtape = (c, i) => numeros(c)[i];
+const nbNumeros = c => Math.max(-1, ...numeros(c)) + 1;
+
+/* Un caractère par numéro d'étape et par chapitre : 0 = pas faite, 1 à 3 = nombre d'étoiles. */
 function coderBilan(etat, date) {
   const f = {};
   [...PARCOURS.flatMap(p => p.chapitres), DEFIS].forEach(c => {
-    const s = c.etapes.map((e, i) => { const r = etat.faits[c.id + "." + i]; return r ? String(Math.min(3, Math.max(1, r.e || 1))) : "0"; }).join("");
+    const t = Array(nbNumeros(c)).fill("0");
+    c.etapes.forEach((e, i) => { const r = etat.faits[c.id + "." + numEtape(c, i)]; if (r) t[numEtape(c, i)] = String(Math.min(3, Math.max(1, r.e || 1))); });
+    const s = t.join("");
     if (/[1-3]/.test(s)) f[c.id] = s;
   });
   const corps = versB64(JSON.stringify({ p: etat.pseudo, c: normClasse(etat.classe) || undefined, d: date, x: etat.xp, s: etat.serie.n, f }));

@@ -23,8 +23,7 @@ classe, avec export CSV. Tout est calculé dans le navigateur, rien n'est stock�
 ## Ajouter ou modifier des exercices
 
 Tout le contenu est dans `js/contenu.js` ; le format de chaque type d'étape est décrit
-en tête de fichier. Ajoutez les nouvelles étapes à la fin d'un chapitre : la progression
-des élèves est enregistrée par position.
+en tête de fichier. Une nouvelle étape s'ajoute à la fin, ou au milieu avec `numero: n` (règle décrite en tête de `js/contenu.js`).
 
 Avant de publier, vérifiez que chaque solution passe bien ses tests :
 
@@ -47,3 +46,4 @@ Avant de publier, vérifiez que chaque solution passe bien ses tests :
 - `js/prof-plus.js` et `js/qrcode.min.js` (espace professeur) : QR code du lien de classe, à projeter, et impression du tableau de classe.
 - Sur téléphone, le profil propose « Envoyer mon code » par le menu de partage.
 - Python (Pyodide) est chargé en priorité depuis `https://stexsnt.github.io/pyodide/`, copie partagée par les quatre sites et rangée dans un cache commun : un élève ne le télécharge qu'une fois. Le dossier `pyodide/` du dépôt reste la copie de secours.
+- Chaque étape a un numéro stable (voir `numeros` dans `js/bilan.js`) : on peut insérer une étape au milieu d'un chapitre sans décaler la progression des élèves ni les codes déjà reçus par le professeur.

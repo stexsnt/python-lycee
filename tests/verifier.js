@@ -4,6 +4,16 @@ const fs = require("fs"), path = require("path");
 const src = f => fs.readFileSync(path.join(__dirname, "..", "js", f), "utf8");
 const { PARCOURS, DEFIS, PY_HARNESS, memesSorties } = new Function(src("contenu.js") + src("moteur.js") + "; return {PARCOURS, DEFIS, PY_HARNESS, memesSorties};")();
 
+// Les numéros d'étape doivent être uniques dans un chapitre (voir « numero » dans bilan.js).
+for (const c of [...PARCOURS.flatMap(p => p.chapitres), DEFIS]) {
+  let k = 0; const vus = new Map();
+  c.etapes.forEach((e, i) => {
+    const n = Number.isInteger(e.numero) ? e.numero : k++;
+    if (vus.has(n)) { console.log(`ECHEC numéro ${n} utilisé deux fois dans ${c.id} : étapes ${vus.get(n) + 1} et ${i + 1}. Premier numéro libre : ${c.etapes.length}`); process.exitCode = 1; }
+    vus.set(n, i);
+  });
+}
+
 (async () => {
   const { loadPyodide } = require("pyodide");
   const py = await loadPyodide();

@@ -23,7 +23,7 @@ let S = charger();
 
 /* ---------- Outils de progression ---------- */
 const chapParId = id => TOUS.find(c => c.id === id);
-const idEtape = (c, i) => c.id + "." + i;
+const idEtape = (c, i) => c.id + "." + numEtape(c, i);   // numEtape : voir bilan.js
 const xpEtape = (c, e) => c.id === "defis" ? 50 : e.t === "code" ? 10 + 10 * (e.d || 1) : XP_BASE[e.t];
 const avancement = c => { const f = c.etapes.filter((e, i) => S.faits[idEtape(c, i)]).length; return { n: c.etapes.length, f, fini: f === c.etapes.length }; };
 const premierAFaire = c => { const i = c.etapes.findIndex((e, k) => !S.faits[idEtape(c, k)]); return i < 0 ? 0 : i; };

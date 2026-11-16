@@ -57,9 +57,9 @@ function eleves(cl) {
   }).filter(Boolean);
 }
 function mesure(o, c) {
-  const s = (o.f[c.id] || "").padEnd(c.etapes.length, "0");
+  const s = o.f[c.id] || "";
   let f = 0, et = 0, max = 0;
-  c.etapes.forEach((e, i) => { const v = +s[i] || 0; if (v) f++; if (e.t !== "lecon") { max += 3; et += v; } });
+  c.etapes.forEach((e, i) => { const v = +s[numEtape(c, i)] || 0; if (v) f++; if (e.t !== "lecon") { max += 3; et += v; } });
   return { f, n: c.etapes.length, et, max };
 }
 const faites = o => CHAPS.reduce((a, x) => a + mesure(o, x.c).f, 0);
@@ -141,7 +141,7 @@ function vueClasse(z, cl) {
 }
 function detail() {
   const x = CHAPS[+$("#chap").value], groupes = onglet === "*" ? nomsClasses().map(cl => [nomClasse(cl), eleves(cl)]).filter(g => g[1].length) : [[nomClasse(onglet), eleves(onglet)]];
-  const notes = (liste, i) => liste.map(o => +((o.f[x.c.id] || "")[i]) || 0).filter(v => v);
+  const notes = (liste, i) => liste.map(o => +((o.f[x.c.id] || "")[numEtape(x.c, i)]) || 0).filter(v => v);
   const corps = x.c.etapes.map((e, i) => `<tr><th scope="row">${i + 1}. ${h(e.titre || NOMS[e.t])}</th><td>${NOMS[e.t]}</td>` + (groupes.length === 1
     ? (() => { const l = groupes[0][1], n = notes(l, i), k = n.length; return `<td><span class="barre"><i style="width:${Math.round(100 * k / l.length)}%"></i></span> ${k} / ${l.length}</td><td>${e.t === "lecon" || !k ? "" : (n.reduce((a, v) => a + v, 0) / k).toFixed(1).replace(".", ",") + " / 3"}</td>`; })()
     : groupes.map(g => caseChap(Math.round(100 * notes(g[1], i).length / g[1].length))).join("")) + "</tr>").join("");
@@ -172,7 +172,7 @@ function exemple() {
   const tous = CHAPS.map(x => x.c), total = tous.reduce((a, c) => a + c.etapes.length, 0);
   const fabrique = (p, k, cl, part, date) => {
     const faits = {}; let xp = 0, rang = 0;
-    tous.forEach(c => c.etapes.forEach((e, i) => { if (rang++ < part * total && !(e.t === "code" && (k + rang) % 7 === 0)) { faits[c.id + "." + i] = { e: 3 - ((k + i) % 3 === 0 ? 1 : 0) - ((k * i) % 5 === 4 ? 1 : 0) }; xp += e.t === "code" ? 25 : 10; } }));
+    tous.forEach(c => c.etapes.forEach((e, i) => { if (rang++ < part * total && !(e.t === "code" && (k + rang) % 7 === 0)) { faits[c.id + "." + numEtape(c, i)] = { e: 3 - ((k + i) % 3 === 0 ? 1 : 0) - ((k * i) % 5 === 4 ? 1 : 0) }; xp += e.t === "code" ? 25 : 10; } }));
     return `${p} : ` + coderBilan({ pseudo: p, classe: cl, xp, serie: { n: k % 5 }, faits }, date);
   };
   const A = ["Adèle M.", "Bilal K.", "Chloé D.", "Driss A.", "Emma L.", "Farid B.", "Gabin R.", "Hana S.", "Inès T.", "Jules P.", "Kenza O.", "Léo V."], Bn = ["Maya C.", "Nolan F.", "Oriane G.", "Paul H.", "Qays J.", "Rose N.", "Sacha U.", "Thaïs W.", "Ugo Y.", "Zoé E."];
