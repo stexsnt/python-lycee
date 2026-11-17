@@ -56,3 +56,5 @@ Le site en ligne est servi depuis la branche `gh-pages`. À chaque envoi sur `ma
 `tests/verifier.js`, puis recopie `main` sur `gh-pages`. Si une vérification échoue, rien n'est publié : le détail
 se lit dans l'onglet « Actions » du dépôt. Une modification faite sur GitHub avec l'icône crayon est donc publiée toute seule.
 - `documents/guide-prise-en-main.pdf` : guide de prise en main pour l'enseignant, lié depuis l'espace professeur et le pied de page. Il est tiré du guide complet, dont on retire le contenu intégral et tous les corrigés ; le guide complet ne doit pas être publié.
+- `apercu.png` : image affichée quand on partage l'adresse du site (balises `og:` de `index.html`). À refaire si l'accueil change beaucoup.
+- Contact affiché en pied de page et dans le guide de prise en main : jean-marc.kraeber@ac-poitiers.fr.
